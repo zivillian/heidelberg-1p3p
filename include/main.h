@@ -24,7 +24,8 @@
         SwitchedOn
         //confirmed phases -> Running
     };
-    byte desiredPhases = 3;
+    uint8_t desiredPhases = 3;
+    uint8_t serverId = 1;
     State currentState = State::WaitingForOff;
     unsigned long waitUntil = 0;
     ModbusClientTCPasync *MBclient;
