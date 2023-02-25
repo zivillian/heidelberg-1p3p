@@ -9,27 +9,18 @@
     #include <ModbusclientTCPasync.h>
     #include "config.h"
     
-    enum State {
-        //wait for phase switch
-        Running,        
-        //sent MaxCurrent=0
-        WaitingForZero, 
-        //received L1-3 Current = 0
-        ConfirmedZero,  
-        //switched Wallbox off
-        WaitingForOff,
-        //confirmed all is off
-        ConfirmedOff,
-        //switched Wallbox on with desired phases
-        SwitchedOn
-        //confirmed phases -> Running
-    };
-    uint8_t desiredPhases = 3;
+    #define PIN_1P_IN 33
+    #define PIN_1P_OUT 26
+    #define PIN_3P_IN 25
+    #define PIN_3P_OUT 27
+    #define MODBUS_REQUEST_TOKEN 3141592653
     uint8_t serverId = 1;
-    State currentState = State::WaitingForOff;
-    unsigned long waitUntil = 0;
+    bool switchingSupported = false;
+    PhaseState currentState;
+    unsigned long waitStarted = 0;
     ModbusClientTCPasync *MBclient;
     ModbusBridgeWiFi MBbridge;
     MBSworker MBbridgeWorker;
     WiFiManager wm;
+    AsyncWebServer webServer(80);
 #endif /* MAIN_H */
