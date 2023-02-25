@@ -12,6 +12,20 @@ Zwischen die Sicherung und die Wallbox kommt ein Kasten mit 2 Schützen, einem E
 
 Beim Umschalten wird durch den ESP zuerst die Ladeleistung auf 0 reduziert und darauf gewartet, dass das Fahrzeug nicht mehr lädt. Anschließend wird die Wallbox komplett vom Strom getrennt und nach einer Pause von 2 Sekunden mit der gewünschten Phasenkonfiguration neu gestartet. Aus Sicht des Fahrzeugs gab es einen kurzen Stromausfall. Dadurch, dass die Ladeleistung vorher auf 0 reduziert wurde, wird nicht unter Last geschaltet.
 
+## Funktioniert das wirklich?
+
+**Keine Ahnung!**
+
+Ich habe meinen Prototyp gebaut und mit einer simulierten Wallbox getestet - das sah nicht verkehrt aus. Der nächste Schritt ist, den Kasten zwischen die Wallbox und Sicherung zu bauen und:
+
+1. ohne Umschaltung zu testen
+2. die manuelle Umschaltung ohne Fahrzeug testen
+3. die manuelle Umschaltung mit Fahrzeug ohne Ladevorgang testen
+4. die manuelle Umschaltung mit Fahrzeut bei aktivem Ladevorgang testen
+5. die automatische Umschaltung in EVCC implementieren
+6. auf Sonne warten und die automatische Umschaltung beobachten
+7. *Party*
+
 ## Darf ich das?
 
 **Nope!**
