@@ -2,7 +2,7 @@
 
 ## Warum?
 
-Die Wallbox unterstützt von Hause aus keine automatisch Umschaltung zwischen 1-phasigem und 3-phasigem Betrieb. Dabei kann die Wallbox sowohl 1 als auch 3-phasig angeschlossen werden. Um den Ertrag bei PV Überschussladen zu steigern, kann es insbesondere im Winter oder der Übergansgzeit hilfreich sein die Anzahl der Phasen je nach verfügbarer Leistung umzuschalten.
+Die Wallbox unterstützt von Hause aus keine automatisch Umschaltung zwischen 1 und 3-Phasen Betrieb. Dabei kann die Wallbox sowohl 1 als auch 3-phasig angeschlossen werden. Um den Ertrag bei PV Überschussladen zu steigern, kann es insbesondere im Winter oder der Übergansgzeit hilfreich sein die Anzahl der Phasen je nach verfügbarer Leistung umzuschalten.
 
 Viele behelfen sich mit einem Lasttrennschalter und schalten manuell um, aber da [evcc](https://evcc.io/) die automatische Umschaltung unterstützt wollte ich das auch für meine Wallbox nachrüsten.
 
@@ -16,15 +16,15 @@ Beim Umschalten wird durch den ESP zuerst die Ladeleistung auf 0 reduziert und d
 
 **Keine Ahnung!**
 
-Ich habe meinen Prototyp gebaut und mit einer simulierten Wallbox getestet - das sah nicht verkehrt aus. Der nächste Schritt ist, den Kasten zwischen die Wallbox und Sicherung zu bauen und:
+Ich habe meinen Prototyp gebaut und mit einer simulierten Wallbox über ModbusTCP getestet - das sah nicht verkehrt aus. Der nächste Schritt ist den Code auf ModbusRTU umzustellen, den Kasten zwischen die Wallbox und Sicherung zu bauen und:
 
-1. ohne Umschaltung zu testen
-2. die manuelle Umschaltung ohne Fahrzeug testen
-3. die manuelle Umschaltung mit Fahrzeug ohne Ladevorgang testen
-4. die manuelle Umschaltung mit Fahrzeut bei aktivem Ladevorgang testen
-5. die automatische Umschaltung in EVCC implementieren
-6. auf Sonne warten und die automatische Umschaltung beobachten
-7. *Party*
+1. mit EVCC ohne Umschaltung zu testen
+1. die manuelle Umschaltung ohne Fahrzeug testen
+1. die manuelle Umschaltung mit Fahrzeug ohne Ladevorgang testen
+1. die manuelle Umschaltung mit Fahrzeug bei aktivem Ladevorgang testen
+1. die automatische Umschaltung in EVCC implementieren
+1. auf Sonne warten und die automatische Umschaltung beobachten
+1. *Party*
 
 ## Darf ich das?
 
