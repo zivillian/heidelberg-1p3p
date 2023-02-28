@@ -16,7 +16,7 @@ Beim Umschalten wird durch den ESP zuerst die Ladeleistung auf 0 reduziert und d
 
 **Keine Ahnung!**
 
-Ich habe meinen Prototyp gebaut und mit einer simulierten Wallbox über ModbusTCP getestet - das sah nicht verkehrt aus. Der nächste Schritt ist den Code auf ModbusRTU umzustellen, den Kasten zwischen die Wallbox und Sicherung zu bauen und:
+Ich habe meinen Prototyp gebaut und mit einer simulierten Wallbox über ModbusTCP getestet - das sah nicht verkehrt aus. Der nächste Schritt ist den Kasten zwischen die Wallbox und Sicherung zu bauen und:
 
 1. mit EVCC ohne Umschaltung zu testen
 1. die manuelle Umschaltung ohne Fahrzeug testen

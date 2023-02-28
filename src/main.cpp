@@ -108,9 +108,12 @@ void setup() {
   wm.autoConnect();
   dbgln("[wifi] finished");
   dbgln("[modbus] start");
-  MBclient = new ModbusClientTCPasync({192, 168, 23, 87});
-  MBclient->setTimeout(30000);
+  RTUutils::prepareHardwareSerial(modbusSerial);
+  modbusSerial.begin(19200, SERIAL_8E1);
+  MBclient = new ModbusClientRTU(modbusSerial);
+  MBclient->setTimeout(1000);
   MBclient->onResponseHandler(clientResponse);
+  MBclient->begin(modbusSerial);
   MBbridge.attachServer(serverId, serverId, ANY_FUNCTION_CODE, MBclient);
   MBbridgeWorker = MBbridge.getWorker(serverId, ANY_FUNCTION_CODE);
   MBbridge.registerWorker(serverId, WRITE_HOLD_REGISTER, filterWriteHolding);

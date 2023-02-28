@@ -6,7 +6,7 @@
     #include <ESPAsyncWebServer.h>
     #include <Logging.h>
     #include <ModbusBridgeWiFi.h>
-    #include <ModbusclientTCPasync.h>
+    #include <ModbusclientRTU.h>
     #include "config.h"
     
     #define PIN_1P_IN 33
@@ -18,7 +18,7 @@
     bool switchingSupported = false;
     PhaseState currentState;
     unsigned long waitStarted = 0;
-    ModbusClientTCPasync *MBclient;
+    ModbusClientRTU *MBclient;
     ModbusBridgeWiFi MBbridge;
     MBSworker MBbridgeWorker;
     WiFiManager wm;
