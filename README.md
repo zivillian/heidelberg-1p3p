@@ -8,20 +8,16 @@ Viele behelfen sich mit einem Lasttrennschalter und schalten manuell um, aber da
 
 ## Wie?
 
-Zwischen die Sicherung und die Wallbox kommt ein Kasten mit 2 Schützen, einem ESP32, einem RS485-TTL Adapter und zwei Solid State Relais. EVCC spricht mit dem Mikrocontroller ModbusTCP und erreicht darüber auch die Wallbox. Über ein zusätzliches Register [könnte EVCC die Anzahl der genutzten Phasen auslesen und setzen](https://github.com/evcc-io/evcc/discussions/6168#discussioncomment-4925261).
+Zwischen die Sicherung und die Wallbox kommt ein Kasten mit 2 Schützen, einem ESP32, einem RS485-TTL Adapter und zwei Relais. EVCC spricht mit dem Mikrocontroller ModbusTCP und erreicht darüber auch die Wallbox. Über ein zusätzliches Register [könnte EVCC die Anzahl der genutzten Phasen auslesen und setzen](https://github.com/evcc-io/evcc/discussions/6168#discussioncomment-4925261).
 
 Beim Umschalten wird durch den ESP zuerst die Ladeleistung auf 0 reduziert und darauf gewartet, dass das Fahrzeug nicht mehr lädt. Anschließend wird die Wallbox komplett vom Strom getrennt und nach einer Pause von 2 Sekunden mit der gewünschten Phasenkonfiguration neu gestartet. Aus Sicht des Fahrzeugs gab es einen kurzen Stromausfall. Dadurch, dass die Ladeleistung vorher auf 0 reduziert wurde, wird nicht unter Last geschaltet.
 
 ## Funktioniert das wirklich?
 
-**Keine Ahnung!**
+Ich habe meinen Prototyp gebaut und mit meiner Wallbox getestet - das sah nicht verkehrt aus. Die Kommunikation zwischen EVCC und der Wallbox über den ESP funktioniert einwandfrei. Die manuelle Umschaltung über das Webinterface des ESP und über ein Modbus Register war mit und ohne Auto erfolgreich. Eine Umschaltung während des Ladevorgangs führt zwar zu Warnungen und Fehlermeldungen in EVCC, das liegt aber nur daran, dass zum einen die Wallbox komplett vom Strom getrennt wird und nach dem Einschalten vorübergehend einen ungültigen Status `1` liefert und zum anderen, dass die Ladeleistung vor dem Umschalten auf `0` gesetzt wird, was EVCC als `charger out of sync: expected enabled, got disabled` meldet.
 
-Ich habe meinen Prototyp gebaut und mit einer simulierten Wallbox über ModbusTCP getestet - das sah nicht verkehrt aus. Der nächste Schritt ist den Kasten zwischen die Wallbox und Sicherung zu bauen und:
+ Die nächsten Schritt sind:
 
-1. mit EVCC ohne Umschaltung zu testen
-1. die manuelle Umschaltung ohne Fahrzeug testen
-1. die manuelle Umschaltung mit Fahrzeug ohne Ladevorgang testen
-1. die manuelle Umschaltung mit Fahrzeug bei aktivem Ladevorgang testen
 1. die automatische Umschaltung in EVCC implementieren
 1. auf Sonne warten und die automatische Umschaltung beobachten
 1. *Party*
@@ -37,7 +33,7 @@ Nach [§13 NAV](https://www.gesetze-im-internet.de/nav/__13.html "Niederspannung
 
 Da jegliche Kommunikation mit der Wallbox über den ESP läuft ist sichergestellt, dass während des Umschaltvorgangs keine anderen Befehle an die Wallbox gesendet werden.
 
-In der Steuerung sind der Leistungsteil und die Steuerung strikt getrennt - der Mikrocontroller steuert über seine GPIOs nur die Solid State Relais, die wiederrum die Schütze ansteuern. Durch die SSRs ist die galvanische Trennung sichergestellt. Über Hilfsschalter an den Schützen kann der Mikrocontroller den aktuellen Zustand auslesen - durch die Hilfsschalter sind auch die Strompfade zwischen AC und DC physisch getrennt. Die beiden Schütze sind elektrisch gegeneinander verriegelt - es kann also immer nur ein Schütz angezogen sein. Eine versehentliche Umschaltung während eines Ladevorgangs ist also ausgeschlossen. Selbst im Worst-Case wird die Wallbox durch den Aufbau in jedem Fall (wenn auch nur sehr kurz) vom Strom getrennt bevor sich die Phasenkonfiguration ändert - damit muss jedes Fahrzeug umgehen können.
+In der Steuerung sind der Leistungsteil und die Steuerung strikt getrennt - der Mikrocontroller steuert über seine GPIOs nur die Relais, die wiederrum die Schütze ansteuern. Durch die Optokoppler auf den Relaismodulen ist die galvanische Trennung sichergestellt. Über Hilfsschalter an den Schützen kann der Mikrocontroller den aktuellen Zustand auslesen - durch die Hilfsschalter sind auch die Strompfade zwischen AC und DC physisch getrennt. Die beiden Schütze sind elektrisch gegeneinander verriegelt - es kann also immer nur ein Schütz angezogen sein. Eine versehentliche Umschaltung während eines Ladevorgangs ist also ausgeschlossen. Selbst im Worst-Case wird die Wallbox durch den Aufbau in jedem Fall (wenn auch nur sehr kurz) vom Strom getrennt bevor sich die Phasenkonfiguration ändert - damit muss jedes Fahrzeug umgehen können.
 
 ## Kann ich mal sehen?
 
@@ -46,14 +42,6 @@ Klar!
 ![Bild vom inneren des Kasten](docs/kasten.jpg)
 
 ## Aber, warum ...?
-
-### ... Schütze wenn die SSRs auch 25A können?
-
-Solid State Relais haben zum einen immer einen Kriechstrom - damit wäre die Trennung der Wallbox nicht mehr sichergestellt. Zum anderen erzeugen sie bei Last relativ viel Abwärme - normalerweise kommen da Kühlkörper drunter die größer sind als die Relais.
-
-### ... SSR und nicht einfache Relais?
-
-Die Hoffnung ist, dass die länger halten, weil es keine beweglichen Teile gibt.
 
 ### ... Hilfsschalter an den Schützen?
 
@@ -80,7 +68,7 @@ Folgende Artikel hab ich verbaut (**keine** Affiliate Links):
 | Schütz 3S/1Ö 25A                  | [Hager ESC428S](https://hager.com/de/katalog/produkt/esc428s-installationsschuetz-brumm-25a-3s1oe-230v)
 | Hilfsschalter                     | [Hager ESC080](https://hager.com/de/katalog/produkt/esc080-hilfsschalter-6a-1s1oe)
 | 5V Netzteil                       | [MeanWell HDR-15-5](https://www.amazon.de/dp/B06XWQSJGW)
-| Solid State Relais (3VDC / 230AC) | [XRE-1D4825](https://www.amazon.de/gp/product/B0911X3KGL/)<br>(die gibt's in zig Varianten und 25A sind viel zu viel, aber diese kommt mit Berührungsschutz, ist ein 2er Pack, es gibt passende [Hutschienenadapter](https://www.amazon.de/gp/product/B09YKX8DCP) und es war das billigste Modell)
+| Relais Modul mit Optokoppler      | [AZDelivery 2-Relais Modul 5V mit Optokoppler](https://www.amazon.de/dp/B078Q326KT)
 | Mikrocontroller                   | [ESP32 DEVKITV1](https://www.amazon.de/dp/B09QXB1PG5) (jeder ESP32 sollte tun - das Devkit hat keine störenden Stiftleisten und Befestigungslöcher)
 | RS-485 TTL Adapter                | [Jopto TTL485-V2.0](https://www.amazon.de/dp/B096ZXXKCR) (mit Befestigungslöchern - die Stiftleiste hab ich gegen Schraubklemmen getauscht)
 | Befestigung RS-485 und ESP        | Das ist der Punkt, wo du kreativ werden musst. Ich hatte noch einen alten NH-Sicherungsblock mit genieteter Hutschienenklemme, Alublech, Nieten und M3-Abstandhalter rumliegen und habe mir was gebastelt.
