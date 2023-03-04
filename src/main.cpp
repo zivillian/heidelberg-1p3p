@@ -5,7 +5,9 @@ ModbusMessage filterWriteHolding(ModbusMessage request){
   dbgln("filterWriteHolding");
   if (currentState.CurrentState != Running)
   {
-    return NIL_RESPONSE;
+    ModbusMessage response;
+    response.setError(request.getServerID(), request.getFunctionCode(), SERVER_DEVICE_BUSY);
+    return response;
   }
   if (switchingSupported)
   {
@@ -31,7 +33,9 @@ ModbusMessage filterReadHolding(ModbusMessage request){
   dbgln("filterReadHolding");
   if (currentState.CurrentState != Running)
   {
-    return NIL_RESPONSE;
+    ModbusMessage response;
+    response.setError(request.getServerID(), request.getFunctionCode(), SERVER_DEVICE_BUSY);
+    return response;
   }
   if (switchingSupported)
   {
@@ -46,6 +50,17 @@ ModbusMessage filterReadHolding(ModbusMessage request){
       response.add((uint16_t)currentState.DesiredPhases);
       return response;
     }
+  }
+  return MBbridgeWorker(request);
+}
+
+ModbusMessage filterReadInput(ModbusMessage request){
+  dbgln("filterReadInput");
+  if (currentState.CurrentState != Running)
+  {
+    ModbusMessage response;
+    response.setError(request.getServerID(), request.getFunctionCode(), SERVER_DEVICE_BUSY);
+    return response;
   }
   return MBbridgeWorker(request);
 }
@@ -96,9 +111,9 @@ void setup() {
   debugSerial.begin(115200);
   dbgln("[gpio] start");
   pinMode(PIN_1P_OUT, OUTPUT);
-  digitalWrite(PIN_1P_OUT, LOW);
+  digitalWrite(PIN_1P_OUT, HIGH);
   pinMode(PIN_3P_OUT, OUTPUT);
-  digitalWrite(PIN_3P_OUT, LOW);
+  digitalWrite(PIN_3P_OUT, HIGH);
   pinMode(PIN_1P_IN, INPUT_PULLUP);
   pinMode(PIN_3P_IN, INPUT_PULLUP);
   dbgln("[gpio] finished");
@@ -118,6 +133,7 @@ void setup() {
   MBbridgeWorker = MBbridge.getWorker(serverId, ANY_FUNCTION_CODE);
   MBbridge.registerWorker(serverId, WRITE_HOLD_REGISTER, filterWriteHolding);
   MBbridge.registerWorker(serverId, READ_HOLD_REGISTER, filterReadHolding);
+  MBbridge.registerWorker(serverId, READ_INPUT_REGISTER, filterReadInput);
   MBbridge.start(502, 10, 30000);
   dbgln("[modbus] finished");
   setupPages(&webServer, MBclient, &MBbridge, &currentState, &wm);
@@ -153,8 +169,8 @@ void loop() {
       break;
     case State::ConfirmedZero:
       dbgln("confirmed zero");
-      digitalWrite(PIN_1P_OUT, LOW);
-      digitalWrite(PIN_3P_OUT, LOW);
+      digitalWrite(PIN_1P_OUT, HIGH);
+      digitalWrite(PIN_3P_OUT, HIGH);
       currentState.CurrentState = State::WaitingForOff;
       break;
     case State::WaitingForOff:
@@ -169,12 +185,12 @@ void loop() {
         switch(currentState.DesiredPhases){
           case 1:
             dbgln("switching on 1p");
-            digitalWrite(PIN_1P_OUT, HIGH);
+            digitalWrite(PIN_1P_OUT, LOW);
             currentState.CurrentState = State::SwitchedOn;
             break;
           case 3:
             dbgln("switching on 3p");
-            digitalWrite(PIN_3P_OUT, HIGH);
+            digitalWrite(PIN_3P_OUT, LOW);
             currentState.CurrentState = State::SwitchedOn;
             break;
         }
