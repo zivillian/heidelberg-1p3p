@@ -152,11 +152,13 @@ void PhaseSwitch::loop(){
 void PhaseSwitch::switchTo1P(){
   if (!canSwitchTo1P()) return;
   _desiredPhases = 1;
+  _state = State::SwitchPhases;
 }
 
 void PhaseSwitch::switchTo3P(){
   if (!canSwitchTo3P()) return;
   _desiredPhases = 3;
+  _state = State::SwitchPhases;
 }
 
 bool PhaseSwitch::canSwitchTo1P(){
