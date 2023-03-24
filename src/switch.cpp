@@ -114,12 +114,20 @@ void PhaseSwitch::loop(){
     //5. die gewünschte Zielposition des Schütz über den Hilfskontakt und die Phasenspannungsregister (>=208V) geprüft wird,
     if (_desiredPhases == 3){
       if (digitalRead(PIN_3P_IN) != HIGH) return;
-      if (getActivePhases() != 3) return;
+      if (getActivePhases() != 3) {
+        _previous = millis();
+        _delay = 1000;
+        return;
+      }
       dbgln("confirmed 3p");
     }
     else {
       if (digitalRead(PIN_1P_IN) != HIGH) return;
-      if (getActivePhases() != 1) return;
+      if (getActivePhases() != 1) {
+        _previous = millis();
+        _delay = 1000;
+        return;
+      }
       dbgln("confirmed 1p");
     }
     _state = State::Delay;
@@ -225,7 +233,7 @@ uint8_t PhaseSwitch::getActivePhases(){
     uint16_t l1, l2, l3;
     response.get(3, l1);
     response.get(5, l2);
-    response.get(6, l3);
+    response.get(7, l3);
     if (l1 >= 208 && l2 < 208 && l3 < 208){
       return 1;
     }
