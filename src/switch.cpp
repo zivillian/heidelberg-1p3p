@@ -60,11 +60,12 @@ void PhaseSwitch::loop(){
     else{
       dbgln("switching on 1p");
       digitalWrite(PIN_1P_OUT, LOW);
-      _state == State::SwitchedOn;
+      _state = State::SwitchedOn;
     }
     return;
   }
   if (!validateSetup()) {
+    dbgln("setup validation failed");
     _previous = millis();
     _delay = 10000;
     return;
@@ -80,6 +81,7 @@ void PhaseSwitch::loop(){
     //   Dabei wird auch die PWM komplett abgeschaltet - wie Disconnect,
     response = cacheWriteHolding(ModbusMessage(_serverId, WRITE_HOLD_REGISTER, HEC_REG_REMOTE_LOCK, (uint16_t)0));
     if (response.getError() != SUCCESS) return;
+    dbgln("phase switch started");
     _state = State::WaitingForZero;
     return;
   }
@@ -97,6 +99,7 @@ void PhaseSwitch::loop(){
     if (l1 > 0) return;
     if (l2 > 0) return;
     if (l3 > 0) return;
+    dbgln("zero load confirmed");
     _state = State::ConfirmedZero;
     return;
   }
@@ -104,6 +107,7 @@ void PhaseSwitch::loop(){
     digitalWrite(PIN_1P_OUT, HIGH);
     digitalWrite(PIN_3P_OUT, HIGH);
     _state = State::WaitingForOff;
+    dbgln("switched off");
     return;
   }
   else if (_state == State::SwitchedOn){
@@ -132,6 +136,7 @@ void PhaseSwitch::loop(){
     response = cacheWriteHolding(ModbusMessage(_serverId, WRITE_HOLD_REGISTER, HEC_REG_MAX_CURRENT, _holdingRegister[HEC_REG_MAX_CURRENT - HOLDING_REG_OFFSET]));
     if (response.getError() != SUCCESS) return;
     _state = State::Running;
+      dbgln("restored registers");
     return;
   }
 }
