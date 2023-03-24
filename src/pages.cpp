@@ -1,18 +1,18 @@
 #include "pages.h"
 
-void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *bridge, PhaseState *state, WiFiManager *wm){
-  server->on("/", HTTP_GET, [state](AsyncWebServerRequest *request){
+void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config, WiFiManager *wm){
+  server->on("/", HTTP_GET, [phaseSwitch](AsyncWebServerRequest *request){
     dbgln("[webserver] GET /");
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Main");
-    if (state->CurrentState == State::Running){
-      if (state->DesiredPhases == 3) {
-        sendPostButton(response, "Switch to 1P", "1p");
-      } else {
-        sendPostButton(response, "Switch to 3P", "3p");
-      }
+    if (phaseSwitch->canSwitchTo1P()){
+      sendPostButton(response, "Switch to 1P", "1p");
+    }
+    if (phaseSwitch->canSwitchTo3P()) {
+      sendPostButton(response, "Switch to 3P", "3p");
     }
     sendButton(response, "Status", "status");
+    sendButton(response, "Config", "config");
     sendButton(response, "Debug", "debug");
     sendButton(response, "Firmware update", "update");
     sendButton(response, "WiFi reset", "wifi", "r");
@@ -20,7 +20,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendResponseTrailer(response);
     request->send(response);
   });
-  server->on("/status", HTTP_GET, [rtu, bridge](AsyncWebServerRequest *request){
+  server->on("/status", HTTP_GET, [phaseSwitch](AsyncWebServerRequest *request){
     dbgln("[webserver] GET /status");
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Status");
@@ -34,12 +34,12 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendTableRow(response, "ESP MAC", WiFi.macAddress());
     sendTableRow(response, "ESP IP",  WiFi.localIP().toString() );
 
-    sendTableRow(response, "RTU Messages", rtu->getMessageCount());
-    sendTableRow(response, "RTU Pending Messages", rtu->pendingRequests());
-    sendTableRow(response, "RTU Errors", rtu->getErrorCount());
-    sendTableRow(response, "Bridge Message", bridge->getMessageCount());
-    sendTableRow(response, "Bridge Clients", bridge->activeClients());
-    sendTableRow(response, "Bridge Errors", bridge->getErrorCount());
+    sendTableRow(response, "RTU Messages", phaseSwitch->getRtuMessageCount());
+    sendTableRow(response, "RTU Pending Messages", phaseSwitch->getRtuPendingRequestCount());
+    sendTableRow(response, "RTU Errors", phaseSwitch->getRtuErrorCount());
+    sendTableRow(response, "Bridge Message", phaseSwitch->getBridgeMessageCount());
+    sendTableRow(response, "Bridge Clients", phaseSwitch->getBridgeActiveClientCount());
+    sendTableRow(response, "Bridge Errors", phaseSwitch->getBridgeErrorCount());
     response->print("</table><p></p>");
     sendButton(response, "Back", "/");
     sendResponseTrailer(response);
@@ -63,20 +63,46 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     ESP.restart();
     dbgln("[webserver] rebooted...")
   });
-  server->on("/1p", HTTP_POST, [state](AsyncWebServerRequest *request){
-    dbgln("[webserver] POST /1p");
-    if (state->CurrentState == State::Running){
-      state->DesiredPhases = 1;
-      state->CurrentState = State::SwitchPhases;
+  server->on("/config", HTTP_GET, [config](AsyncWebServerRequest *request){
+    dbgln("[webserver] GET /config");
+    auto *response = request->beginResponseStream("text/html");
+    sendResponseHeader(response, "Config");
+    response->print("<form method=\"post\">");
+    response->print("<table>"
+      "<tr>"
+        "<td>"
+          "<label for=\"sd\">Phase switch delay (ms)</label>"
+        "</td>"
+        "<td>");
+    response->printf("<input type=\"number\" min=\"1\" id=\"sd\" name=\"sd\" value=\"%d\">", config->getSwitchDelay());
+    response->print("</td>"
+        "</tr>"
+        "</table>");
+    response->print("<button class=\"r\">Save</button>"
+      "</form>"
+      "<p></p>");
+    sendButton(response, "Back", "/");
+    sendResponseTrailer(response);
+    request->send(response);
+  });
+  server->on("/config", HTTP_POST, [config, phaseSwitch](AsyncWebServerRequest *request){
+    dbgln("[webserver] POST /config");
+    if (request->hasParam("sd", true)){
+      auto delay = request->getParam("sd", true)->value().toInt();
+      config->setSwitchDelay(delay);
+      phaseSwitch->setSwitchDelay(delay);
+      dbgln("[webserver] saved switch delay");
     }
     request->redirect("/");
   });
-  server->on("/3p", HTTP_POST, [state](AsyncWebServerRequest *request){
+  server->on("/1p", HTTP_POST, [phaseSwitch](AsyncWebServerRequest *request){
+    dbgln("[webserver] POST /1p");
+    phaseSwitch->switchTo1P();
+    request->redirect("/");
+  });
+  server->on("/3p", HTTP_POST, [phaseSwitch](AsyncWebServerRequest *request){
     dbgln("[webserver] POST /3p");
-    if (state->CurrentState == State::Running){
-      state->DesiredPhases = 3;
-      state->CurrentState = State::SwitchPhases;
-    }
+    phaseSwitch->switchTo3P();
     request->redirect("/");
   });
   server->on("/debug", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -88,7 +114,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     sendResponseTrailer(response);
     request->send(response);
   });
-  server->on("/debug", HTTP_POST, [rtu](AsyncWebServerRequest *request){
+  server->on("/debug", HTTP_POST, [phaseSwitch](AsyncWebServerRequest *request){
     dbgln("[webserver] POST /debug");
     String slaveId = "1";
     if (request->hasParam("slave", true)){
@@ -112,7 +138,7 @@ void setupPages(AsyncWebServer *server, ModbusClientRTU *rtu, ModbusBridgeWiFi *
     auto previous = LOGDEVICE;
     auto debug = WebPrint(previous, response);
     LOGDEVICE = &debug;
-    ModbusMessage answer = rtu->syncRequest(0xdeadbeef, slaveId.toInt(), func.toInt(), reg.toInt(), count.toInt());
+    ModbusMessage answer = phaseSwitch->sendRtuRequest(slaveId.toInt(), func.toInt(), reg.toInt(), count.toInt());
     LOGDEVICE = previous;
     response->print("</pre>");
     auto error = answer.getError();

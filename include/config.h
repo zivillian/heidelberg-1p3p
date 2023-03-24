@@ -6,29 +6,20 @@
     #define modbusSerial Serial2
     #define DEBUG
 
-    enum State {
-        //wait for phase switch
-        Running,
-        //received request to switch phases
-        SwitchPhases,    
-        //sent MaxCurrent=0
-        WaitingForZero, 
-        //received L1-3 Current = 0
-        ConfirmedZero,  
-        //switched Wallbox off
-        WaitingForOff,
-        //confirmed all is off
-        ConfirmedOff,
-        //switched Wallbox on with desired phases
-        SwitchedOn
-        //confirmed phases -> Running
-    };
+    #define PIN_1P_IN 33
+    #define PIN_1P_OUT 26
+    #define PIN_3P_IN 25
+    #define PIN_3P_OUT 27
 
-    class PhaseState{
+    class Config{
+        private:
+            Preferences *_prefs;
+            uint32_t _switchDelay;
         public:
-            PhaseState();
-            State CurrentState;
-            uint8_t DesiredPhases;
+            Config();
+            void begin(Preferences *prefs);
+            uint32_t getSwitchDelay();
+            void setSwitchDelay(uint32_t value);
     };
 
     #ifdef DEBUG

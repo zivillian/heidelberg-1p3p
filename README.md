@@ -45,7 +45,7 @@ Klar!
 
 ### ... Hilfsschalter an den Schützen?
 
-Ja, der ESP weiß was er auf den GPIOs ausgegeben hat und könnte einfach dran glauben, dass der Rest sich wie geplant verhält. Bei den ersten Tests hat sich aber schon gezeigt, dass die Schütze noch einige Sekunden angezogen bleiben, nachdem der GPIO auf `LOW` gesetzt wurde. Darüber hinaus lässt sich ein klebendes Schütz eindeutig erkennen.
+Ja, der ESP weiß was er auf den GPIOs ausgegeben hat und könnte einfach dran glauben, dass der Rest sich wie geplant verhält. Bei den ersten Tests mit Solid State Relais hat sich aber gezeigt, dass die Schütze noch einige Sekunden angezogen bleiben, nachdem der GPIO auf `LOW` gesetzt wurde. Darüber hinaus lässt sich ein klebendes Schütz eindeutig erkennen - das ist mir mit meinem 1P Schütz nach wenigen Tagen passiert.
 
 ### ... nicht einfach NodeRED und ein Shelly
 

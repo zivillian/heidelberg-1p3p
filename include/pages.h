@@ -7,9 +7,10 @@
     #include <ModbusclientRTU.h>
     #include <Update.h>
     #include "config.h"
+    #include "switch.h"
     #include "debug.h"
 
-    void setupPages(AsyncWebServer* server, ModbusClientRTU *rtu, ModbusBridgeWiFi *bridge, PhaseState *state, WiFiManager *wm);
+    void setupPages(AsyncWebServer* server, PhaseSwitch *phaseSwitch, Config *config, WiFiManager *wm);
     void sendResponseHeader(AsyncResponseStream *response, const char *title);
     void sendResponseTrailer(AsyncResponseStream *response);
     void sendButton(AsyncResponseStream *response, const char *title, const char *action, const char *css = "");
