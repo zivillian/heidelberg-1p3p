@@ -26,7 +26,7 @@ void PhaseSwitch::begin(){
 void PhaseSwitch::beginModbus(){
   RTUutils::prepareHardwareSerial(modbusSerial);
   modbusSerial.begin(19200, SERIAL_8E1);
-  _client.setTimeout(1000);
+  _client.setTimeout(500);
   _client.begin(modbusSerial);
   _bridge.attachServer(_serverId, _serverId, ANY_FUNCTION_CODE, &_client);
   _bridgeWorker = _bridge.getWorker(_serverId, ANY_FUNCTION_CODE);
@@ -209,16 +209,26 @@ ModbusMessage PhaseSwitch::sendRtuRequest(uint8_t serverID, uint8_t functionCode
 
 const String PhaseSwitch::getState(){
   String result;
+  if (digitalRead(PIN_1P_IN) == HIGH){
+   result = "1P ";
+  }
+  else if (digitalRead(PIN_3P_IN) == HIGH){
+   result = "3P ";
+  }
+  else{
+    result = "~P ";
+  }
+
   switch(_state){
-    case State::Running: result = "Running"; break;
-    case State::SwitchPhases: result = "SwitchPhases"; break;
-    case State::WaitingForZero: result = "WaitingForZero"; break;
-    case State::ConfirmedZero: result = "ConfirmedZero"; break;
-    case State::WaitingForOff: result = "WaitingForOff"; break;
-    case State::ConfirmedOff: result = "ConfirmedOff"; break;
-    case State::SwitchedOn: result = "SwitchedOn"; break;
-    case State::Delay: result = "Delay"; break;
-    default: result = "undefined"; break;
+    case State::Running: result += "Running"; break;
+    case State::SwitchPhases: result += "SwitchPhases"; break;
+    case State::WaitingForZero: result += "WaitingForZero"; break;
+    case State::ConfirmedZero: result += "ConfirmedZero"; break;
+    case State::WaitingForOff: result += "WaitingForOff"; break;
+    case State::ConfirmedOff: result += "ConfirmedOff"; break;
+    case State::SwitchedOn: result += "SwitchedOn"; break;
+    case State::Delay: result += "Delay"; break;
+    default: result += "undefined"; break;
   }
   if (_delay > 0){
     auto passed = millis() - _previous;
