@@ -67,7 +67,7 @@ void PhaseSwitch::loop(){
   if (!validateSetup()) {
     dbgln("setup validation failed");
     _previous = millis();
-    _delay = 10000;
+    _delay = 1000;
     return;
   }
   if (_state == State::Running) {
@@ -205,6 +205,27 @@ uint32_t PhaseSwitch::getBridgeErrorCount(){
 
 ModbusMessage PhaseSwitch::sendRtuRequest(uint8_t serverID, uint8_t functionCode, uint16_t p1, uint16_t p2){
   return _client.syncRequest(0xdeadbeef, serverID, functionCode, p1, p2);
+}
+
+const String PhaseSwitch::getState(){
+  String result;
+  switch(_state){
+    case State::Running: result = "Running"; break;
+    case State::SwitchPhases: result = "SwitchPhases"; break;
+    case State::WaitingForZero: result = "WaitingForZero"; break;
+    case State::ConfirmedZero: result = "ConfirmedZero"; break;
+    case State::WaitingForOff: result = "WaitingForOff"; break;
+    case State::ConfirmedOff: result = "ConfirmedOff"; break;
+    case State::SwitchedOn: result = "SwitchedOn"; break;
+    case State::Delay: result = "Delay"; break;
+    default: result = "undefined"; break;
+  }
+  if (_delay > 0){
+    auto passed = millis() - _previous;
+    auto remaining = _delay - passed;
+    return result + " (delayed for " + remaining + "ms)";
+  }
+  return result;
 }
 
 bool PhaseSwitch::validateSetup(){

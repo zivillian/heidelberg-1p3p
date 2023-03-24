@@ -4,7 +4,7 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
   server->on("/", HTTP_GET, [phaseSwitch](AsyncWebServerRequest *request){
     dbgln("[webserver] GET /");
     auto *response = request->beginResponseStream("text/html");
-    sendResponseHeader(response, "Main");
+    sendResponseHeader(response, phaseSwitch->getState().c_str());
     if (phaseSwitch->canSwitchTo1P()){
       sendPostButton(response, "Switch to 1P", "1p");
     }
