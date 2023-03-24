@@ -1,5 +1,4 @@
 #include "main.h"
-#include "pages.h"
 
 void setup() {
   debugSerial.begin(115200);
@@ -21,8 +20,11 @@ void setup() {
   setupPages(&webServer, &phaseSwitch, &config, &wm);
   webServer.begin();
   dbgln("[setup] finished");
+  esp_task_wdt_init(2, true);
+  esp_task_wdt_add(NULL);
 }
 
 void loop() {
+  esp_task_wdt_reset();
   phaseSwitch.loop();
 }
