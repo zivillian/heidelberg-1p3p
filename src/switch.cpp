@@ -43,6 +43,7 @@ void PhaseSwitch::loop(){
   if (_state == State::WaitingForOff){
     if (digitalRead(PIN_1P_IN) == LOW && digitalRead(PIN_3P_IN) == LOW){
       dbgln("confirmed off");
+      _switchingSupported = true;
       _state = State::ConfirmedOff;
       _previous = millis();
       _delay = 2000;//todo configurable delay
@@ -193,10 +194,6 @@ ModbusMessage PhaseSwitch::sendRtuRequest(uint8_t serverID, uint8_t functionCode
 
 bool PhaseSwitch::validateSetup(){
   if (_switchingSupported && _firmwareSupported) return true;
-  if (!_switchingSupported && digitalRead(PIN_1P_IN) == LOW && digitalRead(PIN_3P_IN) == LOW){
-    dbgln("switch support detected");
-    _switchingSupported = true;
-  }
   if (_switchingSupported){
     //check firmware
     cacheReadInput(ModbusMessage(_serverId, READ_INPUT_REGISTER, (uint16_t)4, (uint16_t)1));
