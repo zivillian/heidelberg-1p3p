@@ -138,7 +138,7 @@ void PhaseSwitch::loop(){
   }
   else if (_state == State::Delay){
     //7. das RemoteLock-Register wieder auf 1 gesetzt,
-    auto response = cacheWriteHolding(ModbusMessage(_serverId, WRITE_HOLD_REGISTER, HEC_REG_REMOTE_LOCK, 1));
+    auto response = cacheWriteHolding(ModbusMessage(_serverId, WRITE_HOLD_REGISTER, HEC_REG_REMOTE_LOCK, (uint16_t)1));
     if (response.getError() != SUCCESS) return;
     //8. und dann der Ladevorgang wieder fortgesetzt wird (Register 261 auf den zuletzt von evcc gesendeten Wert, caching).
     response = cacheWriteHolding(ModbusMessage(_serverId, WRITE_HOLD_REGISTER, HEC_REG_MAX_CURRENT, _holdingRegister[HEC_REG_MAX_CURRENT - HOLDING_REG_OFFSET]));
@@ -238,6 +238,18 @@ const String PhaseSwitch::getState(){
   return result;
 }
 
+uint16_t PhaseSwitch::getHoldingRegister(size_t reg){
+  if (reg < HOLDING_REG_OFFSET) return 0xffff;
+  reg -= HOLDING_REG_OFFSET;
+  if (reg > _holdingRegister.size()) return 0xffff;
+  return _holdingRegister[reg];
+}
+
+uint16_t PhaseSwitch::getInputRegister(size_t reg){
+  if (reg > _inputRegister.size()) return 0xffff;
+  return _inputRegister[reg];
+}
+
 bool PhaseSwitch::validateSetup(){
   if (_switchingSupported && _firmwareSupported) return true;
   if (_switchingSupported){
@@ -278,12 +290,14 @@ uint8_t PhaseSwitch::getActivePhases(){
 }
 
 ModbusMessage PhaseSwitch::onWriteHolding(ModbusMessage msg){
+  dbgln("onWriteHolding");
   uint16_t addr = 0;
   uint16_t value = 0;
   msg.get(2, addr);
   msg.get(4, value);
   if (_switchingSupported && _firmwareSupported && addr == 4)
   {
+    ModbusMessage response;
     if (value == 1){
       switchTo1P();
     }
@@ -291,18 +305,23 @@ ModbusMessage PhaseSwitch::onWriteHolding(ModbusMessage msg){
       switchTo3P();
     }
     else{
-      return ModbusMessage(msg.getServerID(),  msg.getFunctionCode(), ILLEGAL_DATA_VALUE);
+      response.setError(msg.getServerID(),  msg.getFunctionCode(), ILLEGAL_DATA_VALUE);
+      return response;
     }
-    return ModbusMessage(msg.getServerID(),  msg.getFunctionCode(), addr, value);    
+    response.add(msg.getServerID(),  msg.getFunctionCode(), addr, value);    
+    return response;
   }
   if (_state != State::Running){
     //write to cached registers
+    ModbusMessage response;
     if (addr < HOLDING_REG_OFFSET || addr - HOLDING_REG_OFFSET >= _holdingRegister.size()){
-      return  ModbusMessage(msg.getServerID(), msg.getFunctionCode(), ILLEGAL_DATA_ADDRESS);
+      response.setError(msg.getServerID(),  msg.getFunctionCode(), ILLEGAL_DATA_ADDRESS);
+      return response;
     }
     //Die letzte Stromänderung (Register 261) muss auch währenddessen bei Abfrage durch evcc stets wieder zurückgegeben werden (caching).
     _holdingRegister[addr - HOLDING_REG_OFFSET] = value;
-    return ModbusMessage(msg.getServerID(), msg.getFunctionCode(), addr, value);
+    response.add(msg.getServerID(), msg.getFunctionCode(), addr, value);
+    return response;
   }
   return cacheWriteHolding(msg);
 }
@@ -326,14 +345,17 @@ ModbusMessage PhaseSwitch::cacheWriteHolding(ModbusMessage msg){
 }
 
 ModbusMessage PhaseSwitch::onWriteMultiple(ModbusMessage msg){
+  dbgln("onWriteMultiple");
   uint16_t addr = 0;
   uint16_t words = 0;
   msg.get(2, addr);
   msg.get(4, words);
   if (_state != State::Running){
     //write to cached registers
+    ModbusMessage response;
     if (addr < HOLDING_REG_OFFSET || addr - HOLDING_REG_OFFSET + words > _holdingRegister.size()){
-      return  ModbusMessage(msg.getServerID(), msg.getFunctionCode(), ILLEGAL_DATA_ADDRESS);
+      response.setError(msg.getServerID(),  msg.getFunctionCode(), ILLEGAL_DATA_ADDRESS);
+      return response;
     }
     //Die letzte Stromänderung (Register 261) muss auch währenddessen bei Abfrage durch evcc stets wieder zurückgegeben werden (caching).
     uint16_t index = 7;
@@ -343,8 +365,8 @@ ModbusMessage PhaseSwitch::onWriteMultiple(ModbusMessage msg){
       index = msg.get(index, value);
       _holdingRegister[addr] = value;
     }
-    return ModbusMessage(msg.getServerID(), msg.getFunctionCode(), addr + HOLDING_REG_OFFSET, words);
-
+    response.add(msg.getServerID(), msg.getFunctionCode(), addr + HOLDING_REG_OFFSET, words);
+    return response;
   }
   return cacheWriteMultiple(msg);
 }
@@ -370,6 +392,7 @@ ModbusMessage PhaseSwitch::cacheWriteMultiple(ModbusMessage msg){
 }
 
 ModbusMessage PhaseSwitch::onReadHolding(ModbusMessage msg){
+  dbgln("onReadHolding");
   if (_switchingSupported && _firmwareSupported)
   {
     uint16_t addr = 0;
@@ -379,27 +402,25 @@ ModbusMessage PhaseSwitch::onReadHolding(ModbusMessage msg){
     if (addr == 4 && words == 1){
       //read phase config
       ModbusMessage response;
-      response.add(msg.getServerID(), msg.getFunctionCode(), (uint8_t)(words * 2));
-      response.add((uint16_t)_desiredPhases);
+      response.add(msg.getServerID(), msg.getFunctionCode(), (uint8_t)(words * 2), (uint16_t)_desiredPhases);
       return response;
     }
   }
   if (_state != State::Running){
     //return cached registers
+    ModbusMessage response;
     uint16_t addr = 0;
     uint16_t words = 0;
     msg.get(2, addr);
     msg.get(4, words);
     if (addr < HOLDING_REG_OFFSET || addr - HOLDING_REG_OFFSET + words > _holdingRegister.size()){
-      ModbusMessage response;
       response.setError(msg.getServerID(), msg.getFunctionCode(), ILLEGAL_DATA_ADDRESS);
       return response;
     }
     addr -= HOLDING_REG_OFFSET;
     //RemoteLock muss währenddessen immer 1 zurückgeben (und eingehende Schreibzugriffe ignorieren).
     _holdingRegister[3] = 1;
-    auto response = ModbusMessage(msg.getServerID(), msg.getFunctionCode());
-    response.add((uint8_t)(words * 2));//byte count
+    response.add(msg.getServerID(), msg.getFunctionCode(), (uint8_t)(words * 2));//byte count
     for(size_t i = 0; i < words; i++){
       response.add(_holdingRegister[addr + i]);
     }
@@ -429,21 +450,21 @@ ModbusMessage PhaseSwitch::cacheReadHolding(ModbusMessage msg){
 }
 
 ModbusMessage PhaseSwitch::onReadInput(ModbusMessage msg){
+  dbgln("onReadInput");
   if (_state != State::Running){
     //return cached registers
+    ModbusMessage response;
     uint16_t addr = 0;
     uint16_t words = 0;
     msg.get(2, addr);
     msg.get(4, words);
     if (addr < 4 || addr + words > _inputRegister.size()){
-     ModbusMessage response;
-     response.setError(msg.getServerID(), msg.getFunctionCode(), ILLEGAL_DATA_ADDRESS);
-     return response;
+      response.setError(msg.getServerID(), msg.getFunctionCode(), ILLEGAL_DATA_ADDRESS);
+      return response;
     }
     //Für evcc muss es während der Umschaltprozedur so aussehen als wäre das Fahrzeug angeschlossen aber lädt nicht (Status B).
     _inputRegister[5] = 4; //B1
-    auto response = ModbusMessage(msg.getServerID(), msg.getFunctionCode());
-    response.add((uint8_t)(words * 2));//byte count
+    response.add(msg.getServerID(), msg.getFunctionCode(), (uint8_t)(words * 2));//byte count
     for(size_t i = 0; i < words; i++){
       response.add(_inputRegister[addr + i]);
     }

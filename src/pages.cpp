@@ -33,6 +33,7 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendTableRow(response, "ESP WiFi Quality", WiFiQuality(WiFi.RSSI()));
     sendTableRow(response, "ESP MAC", WiFi.macAddress());
     sendTableRow(response, "ESP IP",  WiFi.localIP().toString() );
+    response->print("<tr><td></td><td></td></tr>");
 
     sendTableRow(response, "RTU Messages", phaseSwitch->getRtuMessageCount());
     sendTableRow(response, "RTU Pending Messages", phaseSwitch->getRtuPendingRequestCount());
@@ -40,6 +41,32 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendTableRow(response, "Bridge Message", phaseSwitch->getBridgeMessageCount());
     sendTableRow(response, "Bridge Clients", phaseSwitch->getBridgeActiveClientCount());
     sendTableRow(response, "Bridge Errors", phaseSwitch->getBridgeErrorCount());
+    sendTableRow(response, "Input Register", "");
+    response->print("<tr><td></td><td></td></tr>");
+
+    sendTableRow(response, "Modbus Register-Layouts Version", String(phaseSwitch->getInputRegister(4), 16));
+    sendTableRow(response, "Charging State", phaseSwitch->getInputRegister(5));
+    sendTableRow(response, "L1 - Current", phaseSwitch->getInputRegister(6));
+    sendTableRow(response, "L2 - Current", phaseSwitch->getInputRegister(7));
+    sendTableRow(response, "L3 - Current", phaseSwitch->getInputRegister(8));
+    sendTableRow(response, "PCB-Temperatur", "" + String(phaseSwitch->getInputRegister(9) * 0.1f, 1) + "°C");
+    sendTableRow(response, "Voltage L1", phaseSwitch->getInputRegister(10));
+    sendTableRow(response, "Voltage L2", phaseSwitch->getInputRegister(11));
+    sendTableRow(response, "Voltage L3", phaseSwitch->getInputRegister(12));
+    sendTableRow(response, "extern lock state", phaseSwitch->getInputRegister(13)==0?"locked":"unlocked");
+    sendTableRow(response, "Power (VA)", phaseSwitch->getInputRegister(14));
+    sendTableRow(response, "Energy since PowerOn", phaseSwitch->getInputRegister(15) << 4 | phaseSwitch->getInputRegister(16));
+    sendTableRow(response, "Energy since Installation", phaseSwitch->getInputRegister(17) << 4 | phaseSwitch->getInputRegister(18));
+    response->print("<tr><td></td><td></td></tr>");
+
+    sendTableRow(response, "ModBus-Master WatchDog Timeout", phaseSwitch->getHoldingRegister(257));
+    sendTableRow(response, "Standby Function Control", phaseSwitch->getHoldingRegister(258)==0?"enabled":"disabled");
+    sendTableRow(response, "Remote lock", phaseSwitch->getHoldingRegister(259)==0?"locked":"unlocked");
+    sendTableRow(response, "Maximal current command", String(phaseSwitch->getHoldingRegister(261) * 0.1f, 1));
+    sendTableRow(response, "FailSafe Current configuration", String(phaseSwitch->getHoldingRegister(262) * 0.1f, 1));
+    
+    response->print("<tr><td></td><td></td></tr>");
+    sendTableRow(response, "Build time", __DATE__ " " __TIME__);
     response->print("</table><p></p>");
     sendButton(response, "Back", "/");
     sendResponseTrailer(response);

@@ -73,5 +73,7 @@
             uint32_t getBridgeErrorCount();
             ModbusMessage sendRtuRequest(uint8_t serverID, uint8_t functionCode, uint16_t p1, uint16_t p2);
             const String getState();
+            uint16_t getHoldingRegister(size_t reg);
+            uint16_t getInputRegister(size_t reg);
     };
 #endif /* SWITCH_H */
