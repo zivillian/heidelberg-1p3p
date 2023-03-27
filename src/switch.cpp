@@ -333,7 +333,6 @@ ModbusMessage PhaseSwitch::cacheWriteHolding(ModbusMessage msg){
     uint16_t value = 0;
     response.get(2, addr);
     response.get(4, value);
-    uint16_t index = 7;
     if (addr >= HOLDING_REG_OFFSET){
       addr -= HOLDING_REG_OFFSET;
       if (addr < _holdingRegister.size()){

@@ -33,7 +33,7 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendTableRow(response, "ESP WiFi Quality", WiFiQuality(WiFi.RSSI()));
     sendTableRow(response, "ESP MAC", WiFi.macAddress());
     sendTableRow(response, "ESP IP",  WiFi.localIP().toString() );
-    response->print("<tr><td></td><td></td></tr>");
+    response->print("<tr><td>&nbsp;</td><td></td></tr>");
 
     sendTableRow(response, "RTU Messages", phaseSwitch->getRtuMessageCount());
     sendTableRow(response, "RTU Pending Messages", phaseSwitch->getRtuPendingRequestCount());
@@ -41,8 +41,7 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendTableRow(response, "Bridge Message", phaseSwitch->getBridgeMessageCount());
     sendTableRow(response, "Bridge Clients", phaseSwitch->getBridgeActiveClientCount());
     sendTableRow(response, "Bridge Errors", phaseSwitch->getBridgeErrorCount());
-    sendTableRow(response, "Input Register", "");
-    response->print("<tr><td></td><td></td></tr>");
+    response->print("<tr><td>&nbsp;</td><td></td></tr>");
 
     sendTableRow(response, "Modbus Register-Layouts Version", String(phaseSwitch->getInputRegister(4), 16));
     sendTableRow(response, "Charging State", phaseSwitch->getInputRegister(5));
@@ -57,7 +56,7 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendTableRow(response, "Power (VA)", phaseSwitch->getInputRegister(14));
     sendTableRow(response, "Energy since PowerOn", phaseSwitch->getInputRegister(15) << 4 | phaseSwitch->getInputRegister(16));
     sendTableRow(response, "Energy since Installation", phaseSwitch->getInputRegister(17) << 4 | phaseSwitch->getInputRegister(18));
-    response->print("<tr><td></td><td></td></tr>");
+    response->print("<tr><td>&nbsp;</td><td></td></tr>");
 
     sendTableRow(response, "ModBus-Master WatchDog Timeout", phaseSwitch->getHoldingRegister(257));
     sendTableRow(response, "Standby Function Control", phaseSwitch->getHoldingRegister(258)==0?"enabled":"disabled");
@@ -65,7 +64,7 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendTableRow(response, "Maximal current command", String(phaseSwitch->getHoldingRegister(261) * 0.1f, 1));
     sendTableRow(response, "FailSafe Current configuration", String(phaseSwitch->getHoldingRegister(262) * 0.1f, 1));
     
-    response->print("<tr><td></td><td></td></tr>");
+    response->print("<tr><td>&nbsp;</td><td></td></tr>");
     sendTableRow(response, "Build time", __DATE__ " " __TIME__);
     response->print("</table><p></p>");
     sendButton(response, "Back", "/");
@@ -380,7 +379,7 @@ void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, St
           "<label for=\"slave\">Slave ID</label>"
         "</td>"
         "<td>");
-    response->printf("<input type=\"number\" min=\"0\" max=\"247\" id=\"slave\" name=\"slave\" value=\"%s\">", slaveId);
+    response->printf("<input type=\"number\" min=\"0\" max=\"247\" id=\"slave\" name=\"slave\" value=\"%s\">", slaveId.c_str());
     response->print("</td>"
         "</tr>"
         "<tr>"
@@ -388,7 +387,7 @@ void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, St
             "<label for=\"func\">Function</label>"
           "</td>"
           "<td>");
-    response->printf("<select id=\"func\" name=\"func\" data-value=\"%s\">", function);
+    response->printf("<select id=\"func\" name=\"func\" data-value=\"%s\">", function.c_str());
     response->print("<option value=\"1\">01 Read Coils</option>"
               "<option value=\"2\">02 Read Discrete Inputs</option>"
               "<option value=\"3\">03 Read Holding Register</option>"
@@ -401,7 +400,7 @@ void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, St
             "<label for=\"reg\">Register</label>"
           "</td>"
           "<td>");
-    response->printf("<input type=\"number\" min=\"0\" max=\"65535\" id=\"reg\" name=\"reg\" value=\"%s\">", reg);
+    response->printf("<input type=\"number\" min=\"0\" max=\"65535\" id=\"reg\" name=\"reg\" value=\"%s\">", reg.c_str());
     response->print("</td>"
         "</tr>"
         "<tr>"
@@ -409,7 +408,7 @@ void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, St
             "<label for=\"count\">Count</label>"
           "</td>"
           "<td>");
-    response->printf("<input type=\"number\" min=\"0\" max=\"65535\" id=\"count\" name=\"count\" value=\"%s\">", count);
+    response->printf("<input type=\"number\" min=\"0\" max=\"65535\" id=\"count\" name=\"count\" value=\"%s\">", count.c_str());
     response->print("</td>"
         "</tr>"
       "</table>");
