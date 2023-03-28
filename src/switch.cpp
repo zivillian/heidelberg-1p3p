@@ -364,7 +364,7 @@ ModbusMessage PhaseSwitch::onWriteMultiple(ModbusMessage msg){
       index = msg.get(index, value);
       _holdingRegister[addr] = value;
     }
-    response.add(msg.getServerID(), msg.getFunctionCode(), addr + HOLDING_REG_OFFSET, words);
+    response.add(msg.getServerID(), msg.getFunctionCode(), (uint16_t)(addr + HOLDING_REG_OFFSET), words);
     return response;
   }
   return cacheWriteMultiple(msg);
