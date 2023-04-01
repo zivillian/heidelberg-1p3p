@@ -18,7 +18,7 @@ Ich habe meinen Prototyp gebaut und mit meiner Wallbox getestet - das sah nicht 
 
  Die nächsten Schritt sind:
 
-1. die automatische Umschaltung in EVCC implementieren
+1. [~~die automatische Umschaltung in EVCC implementieren~~](https://github.com/zivillian/evcc)
 1. auf Sonne warten und die automatische Umschaltung beobachten
 1. *Party*
 
