@@ -64,7 +64,8 @@ Wenn du Ideen hast, [immer her damit](https://github.com/zivillian/heidelberg-1p
 Folgende Artikel hab ich verbaut (**keine** Affiliate Links):
 | Beschreibung                      | Artikel
 | --------------------------------- | -------
-| Schütz 1S/1Ö 25A                  | [Hager ESC227](https://hager.com/de/katalog/produkt/esc227-installationsschuetze-25a-1s1oe-230v)
+| Schütz 1S/1Ö 20A                  | [ABB ESB20-11N-06](https://new.abb.com/products/de/1SBE121111R0611/esb20-11n-06)
+| Hilfsschalter                     | [ABB EH04-11N](https://new.abb.com/products/de/1SAE901901M1011/eh04-11n)
 | Schütz 3S/1Ö 25A                  | [Hager ESC428S](https://hager.com/de/katalog/produkt/esc428s-installationsschuetz-brumm-25a-3s1oe-230v)
 | Hilfsschalter                     | [Hager ESC080](https://hager.com/de/katalog/produkt/esc080-hilfsschalter-6a-1s1oe)
 | 5V Netzteil                       | [MeanWell HDR-15-5](https://www.amazon.de/dp/B06XWQSJGW)
