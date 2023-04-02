@@ -69,7 +69,7 @@ Folgende Artikel hab ich verbaut (**keine** Affiliate Links):
 | Schütz 3S/1Ö 25A                  | [Hager ESC428S](https://hager.com/de/katalog/produkt/esc428s-installationsschuetz-brumm-25a-3s1oe-230v)
 | Hilfsschalter                     | [Hager ESC080](https://hager.com/de/katalog/produkt/esc080-hilfsschalter-6a-1s1oe)
 | 5V Netzteil                       | [MeanWell HDR-15-5](https://www.amazon.de/dp/B06XWQSJGW)
-| Relais Modul mit Optokoppler      | [AZDelivery 2-Relais Modul 5V mit Optokoppler](https://www.amazon.de/dp/B078Q326KT)
+| Relais Modul mit Optokoppler      | [Yizhet 2 Kanal Relais Modul mit Optokoppler](https://www.amazon.de/dp/B07GXC4FGP)
 | Mikrocontroller                   | [ESP32 DEVKITV1](https://www.amazon.de/dp/B09QXB1PG5) (jeder ESP32 sollte tun - das Devkit hat keine störenden Stiftleisten und Befestigungslöcher)
 | RS-485 TTL Adapter                | [Jopto TTL485-V2.0](https://www.amazon.de/dp/B096ZXXKCR) (mit Befestigungslöchern - die Stiftleiste hab ich gegen Schraubklemmen getauscht)
 | Befestigung RS-485 und ESP        | Das ist der Punkt, wo du kreativ werden musst. Ich hatte noch einen alten NH-Sicherungsblock mit genieteter Hutschienenklemme, Alublech, Nieten und M3-Abstandhalter rumliegen und habe mir was gebastelt.
