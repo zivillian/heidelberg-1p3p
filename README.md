@@ -14,12 +14,13 @@ Beim Umschalten wird durch den ESP zuerst die Ladeleistung auf 0 reduziert und d
 
 ## Funktioniert das wirklich?
 
-Ich habe meinen Prototyp gebaut und mit meiner Wallbox getestet - das sah nicht verkehrt aus. Die Kommunikation zwischen EVCC und der Wallbox über den ESP funktioniert einwandfrei. Die manuelle Umschaltung über das Webinterface des ESP und über ein Modbus Register war mit und ohne Auto erfolgreich. Eine Umschaltung während des Ladevorgangs führt zwar zu Warnungen und Fehlermeldungen in EVCC, das liegt aber nur daran, dass zum einen die Wallbox komplett vom Strom getrennt wird und nach dem Einschalten vorübergehend einen ungültigen Status `1` liefert und zum anderen, dass die Ladeleistung vor dem Umschalten auf `0` gesetzt wird, was EVCC als `charger out of sync: expected enabled, got disabled` meldet.
+Ich habe meinen Prototyp gebaut und mit meiner Wallbox getestet - das sah nicht verkehrt aus. Die Kommunikation zwischen EVCC und der Wallbox über den ESP funktioniert einwandfrei. Die manuelle Umschaltung über das Webinterface des ESP und über ein Modbus Register war mit und ohne Auto erfolgreich. Auch die Umschaltung über das evcc Interface funktioniert ([mit der modifizierten evcc Version](https://github.com/zivillian/evcc)) wie erhofft.
 
- Die nächsten Schritt sind:
+ Die nächsten Schritte sind:
 
-1. [~~die automatische Umschaltung in EVCC implementieren~~](https://github.com/zivillian/evcc)
 1. auf Sonne warten und die automatische Umschaltung beobachten
+1. [Dingtian DT-R002 testen](https://www.dingtian-tech.com/en_us/relay2.html)
+1. evcc Patch upstreamen
 1. *Party*
 
 ## Darf ich das?
