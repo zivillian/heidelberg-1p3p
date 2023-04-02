@@ -27,7 +27,7 @@ Ich habe meinen Prototyp gebaut und mit meiner Wallbox getestet - das sah nicht 
 
 **Nope!**
 
-Nach [§13 NAV](https://www.gesetze-im-internet.de/nav/__13.html "Niederspannungsanschlussverordnung ") darf das ...
+Nach [§13 Abs. 2 Satz 4 NAV](https://www.gesetze-im-internet.de/nav/__13.html "Niederspannungsanschlussverordnung ") darf das ...
 > [...] nur durch ein in ein Installateurverzeichnis eines Netzbetreibers eingetragenes Installationsunternehmen durchgeführt werden [...].
 
 ## Ist das sicher?
