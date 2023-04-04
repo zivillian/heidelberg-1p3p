@@ -14,11 +14,10 @@ Beim Umschalten wird durch den ESP zuerst die Ladeleistung auf 0 reduziert und d
 
 ## Funktioniert das wirklich?
 
-Ich habe meinen Prototyp gebaut und mit meiner Wallbox getestet - das sah nicht verkehrt aus. Die Kommunikation zwischen EVCC und der Wallbox über den ESP funktioniert einwandfrei. Die manuelle Umschaltung über das Webinterface des ESP und über ein Modbus Register war mit und ohne Auto erfolgreich. Auch die Umschaltung über das evcc Interface funktioniert ([mit der modifizierten evcc Version](https://github.com/zivillian/evcc)) wie erhofft.
+Ich habe meinen Prototyp gebaut und mit meiner Wallbox getestet - das sah nicht verkehrt aus. Die Kommunikation zwischen EVCC und der Wallbox über den ESP funktioniert einwandfrei. Die manuelle Umschaltung über das Webinterface des ESP und über ein Modbus Register war mit und ohne Auto erfolgreich. Auch die Umschaltung über das evcc Interface funktioniert ([mit der modifizierten evcc Version](https://github.com/zivillian/evcc)) wie erhofft. Anfang April konnte ich auch die automatische Umschaltung abhängig vom Überschuss erfolgreich testen. Nachdem der Heimspeicher ausreichend geladen war wurde die Wallbox zugeschaltet und im Laufe des Tages je nach Bewölkung mehrmals zwischen 1- und 3-phasigem Laden umgeschaltet ohne dass es zu einem Fehler oder einer Warnung kam.
 
  Die nächsten Schritte sind:
 
-1. auf Sonne warten und die automatische Umschaltung beobachten
 1. [Dingtian DT-R002 testen](https://www.dingtian-tech.com/en_us/relay2.html)
 1. evcc Patch upstreamen
 1. *Party*
