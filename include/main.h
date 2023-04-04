@@ -4,7 +4,6 @@
     #include <AsyncTCP.h>
     #include <WiFiManager.h>
     #include <ESPAsyncWebServer.h>
-    #include <esp_task_wdt.h>
     #include <Logging.h>
     #include "config.h"
     #include "switch.h"
