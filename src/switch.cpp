@@ -250,6 +250,14 @@ uint16_t PhaseSwitch::getInputRegister(size_t reg){
   return _inputRegister[reg];
 }
 
+bool PhaseSwitch::updateCachedRegisters(){
+  auto response = cacheReadInput(ModbusMessage(_serverId, READ_INPUT_REGISTER, (uint16_t)0, (uint16_t)19));
+  if (response.getError() != SUCCESS) return false;
+  response = cacheReadHolding(ModbusMessage(_serverId, READ_HOLD_REGISTER, HOLDING_REG_OFFSET, (uint16_t)_holdingRegister.size()));
+  if (response.getError() != SUCCESS) return false;
+  return true;
+}
+
 bool PhaseSwitch::validateSetup(){
   if (_switchingSupported && _firmwareSupported) return true;
   if (_switchingSupported){
@@ -262,10 +270,7 @@ bool PhaseSwitch::validateSetup(){
       _bridge.registerWorker(_serverId, READ_HOLD_REGISTER, [this](ModbusMessage msg){ return this->onReadHolding(msg); });
       _bridge.registerWorker(_serverId, READ_INPUT_REGISTER, [this](ModbusMessage msg){ return this->onReadInput(msg); });
       //initialize caches
-      auto response = cacheReadInput(ModbusMessage(_serverId, READ_INPUT_REGISTER, (uint16_t)0, (uint16_t)19));
-      if (response.getError() != SUCCESS) return false;
-      response = cacheReadHolding(ModbusMessage(_serverId, READ_HOLD_REGISTER, HOLDING_REG_OFFSET, (uint16_t)_holdingRegister.size()));
-      if (response.getError() != SUCCESS) return false;
+      if (!updateCachedRegisters()) return false;
       _firmwareSupported = true;
     }
   }

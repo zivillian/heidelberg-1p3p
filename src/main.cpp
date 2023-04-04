@@ -23,5 +23,6 @@ void setup() {
 }
 
 void loop() {
+  uptime::calculateUptime();
   phaseSwitch.loop();
 }

@@ -75,5 +75,6 @@
             const String getState();
             uint16_t getHoldingRegister(size_t reg);
             uint16_t getInputRegister(size_t reg);
+            bool updateCachedRegisters();
     };
 #endif /* SWITCH_H */

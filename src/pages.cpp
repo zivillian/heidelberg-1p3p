@@ -27,9 +27,8 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     response->print("<table>");
 
     // show ESP infos...
-    sendTableRow(response, "ESP Uptime (sec)", esp_timer_get_time() / 1000000);
     sendTableRow(response, "ESP SSID", WiFi.SSID());
-    sendTableRow(response, "ESP RSSI", WiFi.RSSI());
+    sendTableRow(response, "ESP RSSI", (uint16_t)WiFi.RSSI());
     sendTableRow(response, "ESP WiFi Quality", WiFiQuality(WiFi.RSSI()));
     sendTableRow(response, "ESP MAC", WiFi.macAddress());
     sendTableRow(response, "ESP IP",  WiFi.localIP().toString() );
@@ -43,33 +42,42 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendTableRow(response, "Bridge Errors", phaseSwitch->getBridgeErrorCount());
     response->print("<tr><td>&nbsp;</td><td></td></tr>");
 
-    sendTableRow(response, "Modbus Register-Layouts Version", String(phaseSwitch->getInputRegister(4), 16));
-    sendTableRow(response, "Charging State", phaseSwitch->getInputRegister(5));
-    sendTableRow(response, "L1 - Current", phaseSwitch->getInputRegister(6));
-    sendTableRow(response, "L2 - Current", phaseSwitch->getInputRegister(7));
-    sendTableRow(response, "L3 - Current", phaseSwitch->getInputRegister(8));
-    sendTableRow(response, "PCB-Temperatur", "" + String(phaseSwitch->getInputRegister(9) * 0.1f, 1) + "°C");
-    sendTableRow(response, "Voltage L1", phaseSwitch->getInputRegister(10));
-    sendTableRow(response, "Voltage L2", phaseSwitch->getInputRegister(11));
-    sendTableRow(response, "Voltage L3", phaseSwitch->getInputRegister(12));
+    sendTableRow(response, "Modbus Register-Layouts Version", "0x" + String(phaseSwitch->getInputRegister(4), 16));
+    sendTableRow(response, "Charging State", ChargingState(phaseSwitch->getInputRegister(5)));
+    sendTableRow(response, "L1 - Current (A)", phaseSwitch->getInputRegister(6) * 0.1f);
+    sendTableRow(response, "L2 - Current (A)", phaseSwitch->getInputRegister(7) * 0.1f);
+    sendTableRow(response, "L3 - Curren (A)", phaseSwitch->getInputRegister(8) * 0.1f);
+    sendTableRow(response, "PCB-Temperatur (°C)", phaseSwitch->getInputRegister(9) * 0.1f);
+    sendTableRow(response, "Voltage L1 (V)", phaseSwitch->getInputRegister(10));
+    sendTableRow(response, "Voltage L2 (V)", phaseSwitch->getInputRegister(11));
+    sendTableRow(response, "Voltage L3 (V)", phaseSwitch->getInputRegister(12));
     sendTableRow(response, "extern lock state", phaseSwitch->getInputRegister(13)==0?"locked":"unlocked");
     sendTableRow(response, "Power (VA)", phaseSwitch->getInputRegister(14));
-    sendTableRow(response, "Energy since PowerOn", phaseSwitch->getInputRegister(15) << 4 | phaseSwitch->getInputRegister(16));
-    sendTableRow(response, "Energy since Installation", phaseSwitch->getInputRegister(17) << 4 | phaseSwitch->getInputRegister(18));
+    sendTableRow(response, "Energy since PowerOn (Wh)", (uint32_t)(phaseSwitch->getInputRegister(15) << 4 | phaseSwitch->getInputRegister(16)));
+    sendTableRow(response, "Energy since Installation (Wh)",  (uint32_t)(phaseSwitch->getInputRegister(17) << 4 | phaseSwitch->getInputRegister(18)));
     response->print("<tr><td>&nbsp;</td><td></td></tr>");
 
-    sendTableRow(response, "ModBus-Master WatchDog Timeout", phaseSwitch->getHoldingRegister(257));
+    sendTableRow(response, "ModBus-Master WatchDog Timeout (ms)", phaseSwitch->getHoldingRegister(257));
     sendTableRow(response, "Standby Function Control", phaseSwitch->getHoldingRegister(258)==0?"enabled":"disabled");
     sendTableRow(response, "Remote lock", phaseSwitch->getHoldingRegister(259)==0?"locked":"unlocked");
-    sendTableRow(response, "Maximal current command", String(phaseSwitch->getHoldingRegister(261) * 0.1f, 1));
-    sendTableRow(response, "FailSafe Current configuration", String(phaseSwitch->getHoldingRegister(262) * 0.1f, 1));
+    sendTableRow(response, "Maximal current command (A)", phaseSwitch->getHoldingRegister(261) * 0.1f);
+    sendTableRow(response, "FailSafe Current configuration (A)", phaseSwitch->getHoldingRegister(262) * 0.1f);
     
     response->print("<tr><td>&nbsp;</td><td></td></tr>");
     sendTableRow(response, "Build time", __DATE__ " " __TIME__);
+    sendTableRow(response, "Uptime", Uptime());
     response->print("</table><p></p>");
+    response->print("<form method=\"post\">"
+      "<button class=\"r\">Update register</button>"
+      "</form>"
+      "<p></p>");
     sendButton(response, "Back", "/");
     sendResponseTrailer(response);
     request->send(response);
+  });
+  server->on("/status", HTTP_POST, [phaseSwitch](AsyncWebServerRequest *request){
+    phaseSwitch->updateCachedRegisters();
+    request->redirect("/status");
   });
   server->on("/reboot", HTTP_GET, [](AsyncWebServerRequest *request){
     dbgln("[webserver] GET /reboot");
@@ -356,11 +364,27 @@ void sendPostButton(AsyncResponseStream *response, const char *title, const char
 }
 
 void sendTableRow(AsyncResponseStream *response, const char *name, String value){
+  sendTableRow(response, name, value.c_str());
+}
+
+void sendTableRow(AsyncResponseStream *response, const char *name, const char *value){
     response->printf(
       "<tr>"
         "<td>%s:</td>"
         "<td>%s</td>"
-      "</tr>", name, value.c_str());
+      "</tr>", name, value);
+}
+
+void sendTableRow(AsyncResponseStream *response, const char *name, float value){
+  response->printf(
+    "<tr>"
+      "<td>%s:</td>"
+      "<td>%.1f</td>"
+    "</tr>", name, value);
+}
+
+void sendTableRow(AsyncResponseStream *response, const char *name, uint16_t value){
+  sendTableRow(response, name, (uint32_t)value);
 }
 
 void sendTableRow(AsyncResponseStream *response, const char *name, uint32_t value){
@@ -470,4 +494,30 @@ const String WiFiQuality(int rssiValue)
         case -80 ... -71: return "Not Good"; 
         default: return "Unusable";
     }
+}
+
+const String ChargingState(uint16_t state){
+  switch(state){
+    case 2: return "A1";
+    case 3: return "A2";
+    case 4: return "B1";
+    case 5: return "B2";
+    case 6: return "C1";
+    case 7: return "C2";
+    case 8: return "derating";
+    case 9: return "E";
+    case 10: return "F";
+    case 11: return "ERR";
+      default: return String(state);
+  }
+}
+
+const String Uptime(){
+  char buffer[9];
+  snprintf(buffer, sizeof(buffer), "%02lu:%02lu:%02lu", uptime::getHours(), uptime::getMinutes(), uptime::getSeconds());
+  auto result = String(buffer);
+  if (uptime::getDays() > 0){
+    result = String(uptime::getDays()) + "." + result;
+  }
+  return result;
 }
