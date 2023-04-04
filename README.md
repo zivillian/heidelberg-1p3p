@@ -2,7 +2,7 @@
 
 ## Warum?
 
-Die Wallbox unterstützt von Hause aus keine automatisch Umschaltung zwischen 1 und 3-Phasen Betrieb. Dabei kann die Wallbox sowohl 1 als auch 3-phasig angeschlossen werden. Um den Ertrag bei PV Überschussladen zu steigern, kann es insbesondere im Winter oder der Übergansgzeit hilfreich sein die Anzahl der Phasen je nach verfügbarer Leistung umzuschalten.
+Die Wallbox unterstützt von Hause aus keine automatische Umschaltung zwischen 1 und 3-Phasen Betrieb. Dabei kann die Wallbox sowohl 1 als auch 3-phasig angeschlossen werden. Um den Ertrag bei PV Überschussladen zu steigern, kann es insbesondere im Winter oder der Übergansgzeit hilfreich sein die Anzahl der Phasen je nach verfügbarer Leistung umzuschalten.
 
 Viele behelfen sich mit einem Lasttrennschalter und schalten manuell um, aber da [evcc](https://evcc.io/) die automatische Umschaltung unterstützt wollte ich das auch für meine Wallbox nachrüsten.
 
