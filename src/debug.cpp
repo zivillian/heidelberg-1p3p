@@ -47,6 +47,7 @@ String WebPrint::escape(String text, char oldValue, String newValue){
     return result;
 }
 
+#ifdef BOARD_DINGTIAN
 size_t TelnetPrint::write(uint8_t arg){
     if (client && isConnected()) {
         client.print((char)arg);
@@ -59,3 +60,4 @@ void TelnetPrint::handleInput(){
     //discard - we don't care
     client.read();
 }
+#endif

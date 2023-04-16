@@ -16,9 +16,9 @@ PhaseSwitch::PhaseSwitch()
 
 void PhaseSwitch::begin(){
   pinMode(PIN_1P_OUT, OUTPUT);
-  digitalWrite(PIN_1P_OUT, LOW);
+  digitalWrite(PIN_1P_OUT, RELAY_OFF);
   pinMode(PIN_3P_OUT, OUTPUT);
-  digitalWrite(PIN_3P_OUT, LOW);
+  digitalWrite(PIN_3P_OUT, RELAY_OFF);
   pinMode(PIN_1P_IN, INPUT_PULLUP);
   pinMode(PIN_3P_IN, INPUT_PULLUP);
 }
@@ -54,12 +54,12 @@ void PhaseSwitch::loop(){
     //4. nach validierter Ladeunterbrechung das L2L3-Schütz entsprechend an oder ausgeschaltet wird,
     if (_desiredPhases == 3){
       dbgln("switching on 3p");
-      digitalWrite(PIN_3P_OUT, HIGH);
+      digitalWrite(PIN_3P_OUT, RELAY_ON);
       _state = State::SwitchedOn;
     }
     else{
       dbgln("switching on 1p");
-      digitalWrite(PIN_1P_OUT, HIGH);
+      digitalWrite(PIN_1P_OUT, RELAY_ON);
       _state = State::SwitchedOn;
     }
     return;
@@ -104,8 +104,8 @@ void PhaseSwitch::loop(){
     return;
   }
   else if (_state == State::ConfirmedZero){
-    digitalWrite(PIN_1P_OUT, LOW);
-    digitalWrite(PIN_3P_OUT, LOW);
+    digitalWrite(PIN_1P_OUT, RELAY_OFF);
+    digitalWrite(PIN_3P_OUT, RELAY_OFF);
     _state = State::WaitingForOff;
     dbgln("switched off");
     return;
