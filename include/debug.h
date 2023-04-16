@@ -3,6 +3,7 @@
 
     #include <Arduino.h>
     #include <ESPAsyncWebServer.h>
+    #include <ESPTelnet.h>
     class WebPrint:public Print{
         private:
             Print *_serial;
@@ -15,5 +16,12 @@
             size_t write(uint8_t) override;
             size_t write(const uint8_t *buffer, size_t size) override;
     };
-
+    class TelnetPrint:public Print, public ESPTelnetBase {
+        public:
+            size_t write(uint8_t) override;
+            void handleInput() override;
+    };
+    extern TelnetPrint telnet;
+    #define dbg(x...) telnet.print(x);
+    #define dbgln(x...) telnet.println(x);
 #endif

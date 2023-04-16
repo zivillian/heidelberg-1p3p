@@ -2,14 +2,15 @@
     #define CONFIG_H
     #include <Arduino.h>
     #include <Preferences.h>
-    #define debugSerial Serial
-    #define modbusSerial Serial2
-    #define DEBUG
+    #define modbusSerial Serial
 
-    #define PIN_1P_IN 33
-    #define PIN_1P_OUT 26
-    #define PIN_3P_IN 25
-    #define PIN_3P_OUT 27
+    #define PIN_1P_IN 36
+    #define PIN_1P_OUT 16
+    #define PIN_3P_IN 39
+    #define PIN_3P_OUT 2
+    #define PIN_RS485_DE 33
+    #define PIN_FACTORY_LED 32
+    #define PIN_FACTORY_BTN 34
 
     class Config{
         private:
@@ -22,11 +23,4 @@
             void setSwitchDelay(uint32_t value);
     };
 
-    #ifdef DEBUG
-    #define dbg(x...) debugSerial.print(x);
-    #define dbgln(x...) debugSerial.println(x);
-    #else /* DEBUG */
-    #define dbg(x...) ;
-    #define dbgln(x...) ;
-    #endif /* DEBUG */
 #endif /* CONFIG_H */

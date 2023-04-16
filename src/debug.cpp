@@ -46,3 +46,16 @@ String WebPrint::escape(String text, char oldValue, String newValue){
     result += text.substring(last + 1);
     return result;
 }
+
+size_t TelnetPrint::write(uint8_t arg){
+    if (client && isConnected()) {
+        client.print((char)arg);
+        return 1;
+    }
+    return 0;
+}
+
+void TelnetPrint::handleInput(){
+    //discard - we don't care
+    client.read();
+}
