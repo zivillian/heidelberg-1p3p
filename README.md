@@ -8,17 +8,16 @@ Viele behelfen sich mit einem Lasttrennschalter und schalten manuell um, aber da
 
 ## Wie?
 
-Zwischen die Sicherung und die Wallbox kommt ein Kasten mit 2 Schützen, einem ESP32, einem RS485-TTL Adapter und zwei Relais. EVCC spricht mit dem Mikrocontroller ModbusTCP und erreicht darüber auch die Wallbox. Über ein zusätzliches Register [könnte EVCC die Anzahl der genutzten Phasen auslesen und setzen](https://github.com/evcc-io/evcc/discussions/6168#discussioncomment-4925261).
+Zwischen die Sicherung und die Wallbox kommt ein Kasten mit 2 Schützen, und eine Platine mit einem ESP32, einem RS485-TTL Adapter und zwei Relais. EVCC spricht mit dem Mikrocontroller ModbusTCP und erreicht darüber auch die Wallbox. Über ein zusätzliches Register [könnte EVCC die Anzahl der genutzten Phasen auslesen und setzen](https://github.com/evcc-io/evcc/discussions/6168#discussioncomment-4925261).
 
 Beim Umschalten wird durch den ESP zuerst die Ladeleistung auf 0 reduziert und darauf gewartet, dass das Fahrzeug nicht mehr lädt. Anschließend wird die Wallbox komplett vom Strom getrennt und nach einer Pause von 2 Sekunden mit der gewünschten Phasenkonfiguration neu gestartet. Aus Sicht des Fahrzeugs gab es einen kurzen Stromausfall. Dadurch, dass die Ladeleistung vorher auf 0 reduziert wurde, wird nicht unter Last geschaltet.
 
 ## Funktioniert das wirklich?
 
-Ich habe meinen Prototyp gebaut und mit meiner Wallbox getestet - das sah nicht verkehrt aus. Die Kommunikation zwischen EVCC und der Wallbox über den ESP funktioniert einwandfrei. Die manuelle Umschaltung über das Webinterface des ESP und über ein Modbus Register war mit und ohne Auto erfolgreich. Auch die Umschaltung über das evcc Interface funktioniert ([mit der modifizierten evcc Version](https://github.com/zivillian/evcc)) wie erhofft. Anfang April konnte ich auch die automatische Umschaltung abhängig vom Überschuss erfolgreich testen. Nachdem der Speicher ausreichend geladen war wurde die Wallbox zugeschaltet und im Laufe des Tages je nach Bewölkung mehrmals zwischen 1- und 3-phasigem Laden umgeschaltet ohne dass es zu einem Fehler oder einer Warnung kam.
+Ich habe meinen Prototyp gebaut und mit meiner Wallbox getestet - das sieht sehr gut aus. Die Kommunikation zwischen EVCC und der Wallbox über den ESP funktioniert einwandfrei. Die manuelle Umschaltung über das Webinterface des ESP und über ein Modbus Register funktioniert mit und ohne Auto. Auch die Umschaltung über das evcc Webinterface und die automatische Umschaltung abhängig vom Überschuss funktioniert ([mit der modifizierten evcc Version](https://github.com/zivillian/evcc)) problemlos.
 
  Die nächsten Schritte sind:
 
-1. [Dingtian DT-R002 testen](https://www.dingtian-tech.com/en_us/relay2.html)
 1. evcc Patch upstreamen
 1. *Party*
 
@@ -55,6 +54,10 @@ Die Gesamtleistung der meisten Shelly liegt unter den benötigen 16A bzw. 48A (3
 
 Das kann dir [dein Elektriker](#darf-ich-das) sicher beantworten.
 
+### ... Schütze von 2 verschiedenen Herstellern?
+
+Der Hersteller ist egal, die Leistung ist wichtig und brummfrei kann bei EMV helfen. Ursprünglich hatte ich beide Schütze von Hager, aber der 1P Schütz war nicht brummfrei und hat Störungen verursacht die manchmal zum Reboot des ESP führten. Da es keinen passenden Schütz von Hager gab, hab ich einen von ABB verbaut.
+
 ### ... hast du nicht *XYZ*, dass wär doch viel einfacher / besser / schöner?
 
 Wenn du Ideen hast, [immer her damit](https://github.com/zivillian/heidelberg-1p3p/issues/new).
@@ -69,12 +72,10 @@ Folgende Artikel hab ich verbaut (**keine** Affiliate Links):
 | Schütz 3S/1Ö 25A                  | [Hager ESC428S](https://hager.com/de/katalog/produkt/esc428s-installationsschuetz-brumm-25a-3s1oe-230v)
 | Hilfsschalter                     | [Hager ESC080](https://hager.com/de/katalog/produkt/esc080-hilfsschalter-6a-1s1oe)
 | 5V Netzteil                       | [MeanWell HDR-15-5](https://www.amazon.de/dp/B06XWQSJGW)
-| Relais Modul mit Optokoppler      | [Yizhet 2 Kanal Relais Modul mit Optokoppler](https://www.amazon.de/dp/B07GXC4FGP)
-| Mikrocontroller                   | [ESP32 DEVKITV1](https://www.amazon.de/dp/B09QXB1PG5) (jeder ESP32 sollte tun - das Devkit hat keine störenden Stiftleisten und Befestigungslöcher)
-| RS-485 TTL Adapter                | [Jopto TTL485-V2.0](https://www.amazon.de/dp/B096ZXXKCR) (mit Befestigungslöchern - die Stiftleiste hab ich gegen Schraubklemmen getauscht)
-| Befestigung RS-485 und ESP        | Das ist der Punkt, wo du kreativ werden musst. Ich hatte noch einen alten NH-Sicherungsblock mit genieteter Hutschienenklemme, Alublech, Nieten und M3-Abstandhalter rumliegen und habe mir was gebastelt.
+| ESP / Modbus / Relais Platine     | [Dingtian DT-R002 mit RS485](https://www.dingtian-tech.com/en_us/relay2.html)<br/> Bei der Bestellung unbedingt angeben, dass du ein DEV Board haben möchtest - [ansonsten kann da keine eigene Firmware aufgespielt werden](https://templates.blakadder.com/dingtian_DT-R008.html#warning).
+| Befestigung Platine               | Ich habe mir einen Hutschienenadapter drucken lassen, aber es gibt auch [passende Gehäuse](https://www.dingtian-tech.com/img/2channel/DIN35.jpg).
 | AC Verteilung / Klemmen           | [Phoenix PT-6](https://www.phoenixcontact.com/de-de/produkte/durchgangsklemme-pt-6-3211813) ([Deckel](https://www.phoenixcontact.com/de-de/produkte/abschlussdeckel-d-pt-6-3212044), [Brücken](https://www.phoenixcontact.com/de-de/produkte/steckbruecke-fbs-2-8-3030284) und [Endhalter](https://www.phoenixcontact.com/de-de/produkte/endhalter-clipfix-35-5-3022276) nicht vergessen)<br>Es geht auch PT-4, aber du willst die Wallbox in jedem Fall mit ausreichendem Querschnitt anschließen und kein 6mm² in die PT-4 fummeln.
-| DC Verteilung / Klemmen           | [Phoenix PT 2,5](https://www.phoenixcontact.com/de-de/produkte/durchgangsklemme-pt-25-3209510) ([Deckel](https://www.phoenixcontact.com/de-de/produkte/abschlussdeckel-d-st-25-3030417) und [Brücke](https://www.phoenixcontact.com/de-de/produkte/steckbruecke-fbs-2-5-3030161) nicht vergessen)
+| DC Verteilung / Klemmen           | [Phoenix PT 2,5](https://www.phoenixcontact.com/de-de/produkte/mehrleiterklemme-pt-25-quattro-3209578) ([Deckel](https://www.phoenixcontact.com/de-de/produkte/abschlussdeckel-d-st-25-quattro-3030514) und [Brücke](https://www.phoenixcontact.com/de-de/produkte/steckbruecke-fbs-2-5-3030161) nicht vergessen)
 | Kabel                             | [H07 V-K 6mm²](https://www.hornbach.de/shop/Aderleitung-H07-V-K-1x6-mm-schwarz-Meterware/5188575/artikel.html) (schwarz) für den Leistungsteil
 | Kabel                             | H07 V-K 1,5mm² [blau](https://www.stex24.de/124831-h07v-k-einzelader-pvc-dunkelblau-4520141) und [braun](https://www.stex24.de/124829-nyy-o-einzelader-pvc-braun-4520031) für die Ansteuerung der Schütze
 | Kabel                             | [H05 V-K 0,5mm²](https://www.stex24.de/124802-h05v-einzelader-pvc-orange-4510091) für den DC Teil
