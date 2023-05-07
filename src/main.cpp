@@ -10,9 +10,7 @@ TelnetPrint debugOut;
 WiFiManager wm(debugOut);
 
 void setup() {
-#ifdef BOARD_DINGTIAN
-  debugOut.begin(23, false);
-#else
+#ifndef BOARD_DINGTIAN
   debugOut.begin(115200);
 #endif
   dbgln("[gpio] start");
@@ -24,8 +22,18 @@ void setup() {
   phaseSwitch.setSwitchDelay(config.getSwitchDelay());
   dbgln("[wifi] start");
   WiFi.mode(WIFI_STA);
+  
+#ifdef BOARD_DINGTIAN
+  debugOut.begin(23, false);
+#endif
+  wm.setDebugOutput(false);
+
+  pinMode(PIN_FACTORY_LED, OUTPUT);
+  digitalWrite(PIN_FACTORY_LED, LOW);
+
   wm.setClass("invert");
   wm.autoConnect();
+  MBUlogLvl = LOG_LEVEL_WARNING;
   LOGDEVICE = &debugOut;
   dbgln("[wifi] finished");
   dbgln("[modbus] start");

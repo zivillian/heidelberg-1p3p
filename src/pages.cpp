@@ -172,9 +172,12 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendResponseHeader(response, "Debug");
     response->print("<pre>");
     auto previous = LOGDEVICE;
+    auto previousLevel = MBUlogLvl;
     auto debug = WebPrint(previous, response);
     LOGDEVICE = &debug;
+    MBUlogLvl = LOG_LEVEL_DEBUG;
     ModbusMessage answer = phaseSwitch->sendRtuRequest(slaveId.toInt(), func.toInt(), reg.toInt(), count.toInt());
+    MBUlogLvl = previousLevel;
     LOGDEVICE = previous;
     response->print("</pre>");
     auto error = answer.getError();
