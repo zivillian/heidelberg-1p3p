@@ -2,7 +2,7 @@
     #define SWITCH_H
     #include <Arduino.h>
     #include <ModbusBridgeWiFi.h>
-    #include <ModbusclientRTU.h>
+    #include <ModbusClientRTU.h>
     #include "config.h"
     #include "debug.h"
 

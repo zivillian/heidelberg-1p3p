@@ -4,7 +4,7 @@
     #include <WiFiManager.h>
     #include <ESPAsyncWebServer.h>
     #include <ModbusBridgeWiFi.h>
-    #include <ModbusclientRTU.h>
+    #include <ModbusClientRTU.h>
     #include <Update.h>
     #include <uptime.h>
     #include "config.h"
