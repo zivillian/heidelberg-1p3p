@@ -8,10 +8,4 @@
     #include "config.h"
     #include "switch.h"
     #include "pages.h"
-
-    WiFiManager wm;
-    AsyncWebServer webServer(80);
-    Config config;
-    Preferences prefs;
-    PhaseSwitch phaseSwitch;
 #endif /* MAIN_H */

@@ -15,5 +15,15 @@
             size_t write(uint8_t) override;
             size_t write(const uint8_t *buffer, size_t size) override;
     };
-
+#ifdef BOARD_DINGTIAN
+    #include <ESPTelnet.h>
+    class TelnetPrint:public Print, public ESPTelnetBase {
+        public:
+            size_t write(uint8_t) override;
+            void handleInput() override;
+    };
+    extern TelnetPrint debugOut;
+#endif
+    #define dbg(x...) debugOut.print(x);
+    #define dbgln(x...) debugOut.println(x);
 #endif

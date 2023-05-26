@@ -48,7 +48,7 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendTableRow(response, "Charging State", ChargingState(phaseSwitch->getInputRegister(5)));
     sendTableRow(response, "L1 - Current (A)", phaseSwitch->getInputRegister(6) * 0.1f);
     sendTableRow(response, "L2 - Current (A)", phaseSwitch->getInputRegister(7) * 0.1f);
-    sendTableRow(response, "L3 - Curren (A)", phaseSwitch->getInputRegister(8) * 0.1f);
+    sendTableRow(response, "L3 - Current (A)", phaseSwitch->getInputRegister(8) * 0.1f);
     sendTableRow(response, "PCB-Temperatur (°C)", phaseSwitch->getInputRegister(9) * 0.1f);
     sendTableRow(response, "Voltage L1 (V)", phaseSwitch->getInputRegister(10));
     sendTableRow(response, "Voltage L2 (V)", phaseSwitch->getInputRegister(11));
@@ -172,9 +172,12 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendResponseHeader(response, "Debug");
     response->print("<pre>");
     auto previous = LOGDEVICE;
+    auto previousLevel = MBUlogLvl;
     auto debug = WebPrint(previous, response);
     LOGDEVICE = &debug;
+    MBUlogLvl = LOG_LEVEL_DEBUG;
     ModbusMessage answer = phaseSwitch->sendRtuRequest(slaveId.toInt(), func.toInt(), reg.toInt(), count.toInt());
+    MBUlogLvl = previousLevel;
     LOGDEVICE = previous;
     response->print("</pre>");
     auto error = answer.getError();

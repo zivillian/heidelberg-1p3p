@@ -2,8 +2,9 @@
     #define SWITCH_H
     #include <Arduino.h>
     #include <ModbusBridgeWiFi.h>
-    #include <ModbusclientRTU.h>
+    #include <ModbusClientRTU.h>
     #include "config.h"
+    #include "debug.h"
 
     #define HEC_REG_REMOTE_LOCK (uint16_t)259
     #define HEC_REG_MAX_CURRENT (uint16_t)261
