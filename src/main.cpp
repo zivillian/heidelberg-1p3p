@@ -32,7 +32,12 @@ void setup() {
   digitalWrite(PIN_FACTORY_LED, LOW);
 
   wm.setClass("invert");
+  auto reboot = false;
+  wm.setAPCallback([&reboot](WiFiManager *wifiManager){reboot = true;});
   wm.autoConnect();
+  if (reboot){
+    ESP.restart();
+  }
   MBUlogLvl = LOG_LEVEL_WARNING;
   LOGDEVICE = &debugOut;
   dbgln("[wifi] finished");

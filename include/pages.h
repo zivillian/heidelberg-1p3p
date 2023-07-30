@@ -12,7 +12,7 @@
     #include "debug.h"
 
     void setupPages(AsyncWebServer* server, PhaseSwitch *phaseSwitch, Config *config, WiFiManager *wm);
-    void sendResponseHeader(AsyncResponseStream *response, const char *title);
+    void sendResponseHeader(AsyncResponseStream *response, const char *title, bool inlineStyle = false);
     void sendResponseTrailer(AsyncResponseStream *response);
     void sendButton(AsyncResponseStream *response, const char *title, const char *action, const char *css = "");
     void sendPostButton(AsyncResponseStream *response, const char *title, const char *action);
@@ -22,6 +22,7 @@
     void sendTableRow(AsyncResponseStream *response, const char *name, String value);
     void sendTableRow(AsyncResponseStream *response, const char *name, const char *value);
     void sendDebugForm(AsyncResponseStream *response, String slaveId, String reg, String function, String count);
+    void sendMinCss(AsyncResponseStream *response);
     const String ErrorName(Modbus::Error code);
     const String WiFiQuality(int rssiValue);
     const String ChargingState(uint16_t state);
