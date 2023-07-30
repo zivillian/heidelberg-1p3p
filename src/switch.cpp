@@ -27,7 +27,7 @@ void PhaseSwitch::beginModbus(){
   RTUutils::prepareHardwareSerial(modbusSerial);
   modbusSerial.begin(19200, SERIAL_8E1);
   _client.setTimeout(500);
-  _client.begin(modbusSerial);
+  _client.begin(modbusSerial, 1);
   _bridge.attachServer(_serverId, _serverId, ANY_FUNCTION_CODE, &_client);
   _bridgeWorker = _bridge.getWorker(_serverId, ANY_FUNCTION_CODE);
   _bridge.start(502, 10, 30000);
