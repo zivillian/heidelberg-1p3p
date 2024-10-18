@@ -39,6 +39,9 @@ In der Steuerung sind der Leistungsteil und die Logik strikt getrennt - der Mikr
 Klar!
 
 ![Bild vom inneren des Kasten](docs/kasten.jpg)
+Alternative:
+![Bild von einem weiteren Kasten](docs/kasten2.jpg)
+
 
 ## Aber, warum ...?
 
