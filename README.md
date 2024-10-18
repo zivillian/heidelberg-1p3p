@@ -41,7 +41,7 @@ Klar!
 ![Bild vom inneren des Kasten](docs/kasten.jpg)
 Alternative:
 ![Bild von einem weiteren Kasten](docs/kasten2.jpg)
-
+Einen [Schaltplan](docs/Wallbox_1p3p_Umschaltung.pdf) gibt es auch.
 
 ## Aber, warum ...?
 
