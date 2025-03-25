@@ -55,8 +55,8 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendTableRow(response, "Voltage L3 (V)", phaseSwitch->getInputRegister(12));
     sendTableRow(response, "extern lock state", phaseSwitch->getInputRegister(13)==0?"locked":"unlocked");
     sendTableRow(response, "Power (VA)", phaseSwitch->getInputRegister(14));
-    sendTableRow(response, "Energy since PowerOn (Wh)", (uint32_t)(phaseSwitch->getInputRegister(15) << 4 | phaseSwitch->getInputRegister(16)));
-    sendTableRow(response, "Energy since Installation (Wh)",  (uint32_t)(phaseSwitch->getInputRegister(17) << 4 | phaseSwitch->getInputRegister(18)));
+    sendTableRow(response, "Energy since PowerOn (Wh)", (uint32_t)(phaseSwitch->getInputRegister(15) << 16 | phaseSwitch->getInputRegister(16)));
+    sendTableRow(response, "Energy since Installation (Wh)",  (uint32_t)(phaseSwitch->getInputRegister(17) << 16 | phaseSwitch->getInputRegister(18)));
     response->print("<tr><td>&nbsp;</td><td></td></tr>");
 
     sendTableRow(response, "ModBus-Master WatchDog Timeout (ms)", phaseSwitch->getHoldingRegister(257));
