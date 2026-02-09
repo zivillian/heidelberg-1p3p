@@ -48,6 +48,7 @@
             String _wifiMask;
             String _wifiDns1;
             String _wifiDns2;
+            bool _modbusEnabled;
         public:
             Config();
             void begin(Preferences *prefs);
@@ -77,6 +78,8 @@
             void setWifiDns1(String value);
             String getWifiDns2();
             void setWifiDns2(String value);
+            bool getModbusEnabled();
+            void setModbusEnabled(bool value);
     };
 
 #endif /* CONFIG_H */

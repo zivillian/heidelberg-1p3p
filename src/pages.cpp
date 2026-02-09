@@ -166,6 +166,10 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
                      config->getEthDns2().c_str());
 #endif
     response->print("</table>");
+    response->print("<p></p>");
+    response->print("<label><input type=\"checkbox\" name=\"modbus\" value=\"1\" ");
+    response->print(config->getModbusEnabled() ? "checked" : "");
+    response->print("> Modbus/RS485 aktiv</label>");
     response->print("<p style=\"font-size:0.9em;opacity:0.8;\">"
                     "Hinweis: Statische IP-Einstellungen werden nach einem Reboot zuverlässig aktiv."
                     "</p>");
@@ -256,6 +260,8 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
       ethernetConfigureStatic(ip, gw, mask, dns1, dns2);
     }
 #endif
+    bool modbusEnabled = request->hasParam("modbus", true);
+    config->setModbusEnabled(modbusEnabled);
     request->redirect("/");
   });
   server->on("/1p", HTTP_POST, [phaseSwitch](AsyncWebServerRequest *request){

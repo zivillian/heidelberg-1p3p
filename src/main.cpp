@@ -107,8 +107,12 @@ void setup() {
   LOGDEVICE = &debugOut;
   dbgln("[wifi] finished");
   dbgln("[modbus] start");
-  phaseSwitch.beginModbus();
-  dbgln("[modbus] finished");
+  if (config.getModbusEnabled()) {
+    phaseSwitch.beginModbus();
+    dbgln("[modbus] finished");
+  } else {
+    dbgln("[modbus] disabled in config");
+  }
   setupPages(&webServer, &phaseSwitch, &config, &wm);
   webServer.begin();
   dbgln("[setup] finished");

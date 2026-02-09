@@ -15,24 +15,26 @@ Config::Config()
     ,_wifiMask("255.255.255.0")
     ,_wifiDns1("192.168.178.1")
     ,_wifiDns2("")
+    ,_modbusEnabled(true)
 {}
 
 void Config::begin(Preferences *prefs)
 {
     _prefs = prefs;
     _switchDelay = _prefs->getULong("switchDelay", _switchDelay);
-    _ethDhcp = _prefs->getBool("ethDhcp", _ethDhcp);
-    _ethIp = _prefs->getString("ethIp", _ethIp);
-    _ethGw = _prefs->getString("ethGw", _ethGw);
-    _ethMask = _prefs->getString("ethMask", _ethMask);
-    _ethDns1 = _prefs->getString("ethDns1", _ethDns1);
-    _ethDns2 = _prefs->getString("ethDns2", _ethDns2);
-    _wifiDhcp = _prefs->getBool("wifiDhcp", _wifiDhcp);
-    _wifiIp = _prefs->getString("wifiIp", _wifiIp);
-    _wifiGw = _prefs->getString("wifiGw", _wifiGw);
-    _wifiMask = _prefs->getString("wifiMask", _wifiMask);
-    _wifiDns1 = _prefs->getString("wifiDns1", _wifiDns1);
-    _wifiDns2 = _prefs->getString("wifiDns2", _wifiDns2);
+    if (_prefs->isKey("ethDhcp")) _ethDhcp = _prefs->getBool("ethDhcp", _ethDhcp);
+    if (_prefs->isKey("ethIp")) _ethIp = _prefs->getString("ethIp", _ethIp);
+    if (_prefs->isKey("ethGw")) _ethGw = _prefs->getString("ethGw", _ethGw);
+    if (_prefs->isKey("ethMask")) _ethMask = _prefs->getString("ethMask", _ethMask);
+    if (_prefs->isKey("ethDns1")) _ethDns1 = _prefs->getString("ethDns1", _ethDns1);
+    if (_prefs->isKey("ethDns2")) _ethDns2 = _prefs->getString("ethDns2", _ethDns2);
+    if (_prefs->isKey("wifiDhcp")) _wifiDhcp = _prefs->getBool("wifiDhcp", _wifiDhcp);
+    if (_prefs->isKey("wifiIp")) _wifiIp = _prefs->getString("wifiIp", _wifiIp);
+    if (_prefs->isKey("wifiGw")) _wifiGw = _prefs->getString("wifiGw", _wifiGw);
+    if (_prefs->isKey("wifiMask")) _wifiMask = _prefs->getString("wifiMask", _wifiMask);
+    if (_prefs->isKey("wifiDns1")) _wifiDns1 = _prefs->getString("wifiDns1", _wifiDns1);
+    if (_prefs->isKey("wifiDns2")) _wifiDns2 = _prefs->getString("wifiDns2", _wifiDns2);
+    if (_prefs->isKey("modbusEnabled")) _modbusEnabled = _prefs->getBool("modbusEnabled", _modbusEnabled);
 }
 
 uint32_t Config::getSwitchDelay(){
@@ -163,4 +165,14 @@ void Config::setWifiDns2(String value){
     if (_wifiDns2 == value) return;
     _wifiDns2 = value;
     _prefs->putString("wifiDns2", _wifiDns2);
+}
+
+bool Config::getModbusEnabled(){
+    return _modbusEnabled;
+}
+
+void Config::setModbusEnabled(bool value){
+    if (_modbusEnabled == value) return;
+    _modbusEnabled = value;
+    _prefs->putBool("modbusEnabled", _modbusEnabled);
 }
