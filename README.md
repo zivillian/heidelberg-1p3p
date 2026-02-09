@@ -43,6 +43,10 @@ Unter **Status** werden die Ethernet MAC und IP angezeigt (zusätzlich zu WiFi).
 
 Unter **Config** kann zwischen DHCP und statischer IP gewechselt werden – sowohl für Ethernet als auch für WiFi. Für statische IP bitte `IP`, `Gateway`, `Netmask` und `DNS` eintragen. (WiFi-Änderungen werden nach einem Reboot zuverlässig aktiv.)
 
+### WLAN bei aktivem LAN
+
+Wenn Ethernet Link + IP hat, wird WLAN automatisch deaktiviert. Fällt Ethernet weg, wird WLAN wieder aktiviert.
+
 ## Darf ich das?
 
 **Nope!**
