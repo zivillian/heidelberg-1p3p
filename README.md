@@ -41,7 +41,7 @@ Unter **Status** werden die Ethernet MAC und IP angezeigt (zusätzlich zu WiFi).
 
 ### DHCP vs. statische IP
 
-Unter **Config** kann zwischen DHCP und statischer IP gewechselt werden. Für statische IP bitte `IP`, `Gateway`, `Netmask` und `DNS` eintragen.
+Unter **Config** kann zwischen DHCP und statischer IP gewechselt werden – sowohl für Ethernet als auch für WiFi. Für statische IP bitte `IP`, `Gateway`, `Netmask` und `DNS` eintragen. (WiFi-Änderungen werden nach einem Reboot zuverlässig aktiv.)
 
 ## Darf ich das?
 
