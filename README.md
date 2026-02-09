@@ -37,15 +37,24 @@ Der Dingtian DT-R002 (DEV) hat einen JL1101 PHY (RTL8201F kompatibel) und einen 
 
 ### Statusanzeige
 
-Unter **Status** werden die Ethernet MAC und IP angezeigt (zusätzlich zu WiFi).
+Unter **Status** werden die Ethernet MAC und IP angezeigt (zusätzlich zu WiFi). Wenn WLAN oder LAN nicht aktiv sind, werden deren IP‑Felder leer gelassen.
 
 ### DHCP vs. statische IP
 
 Unter **Config** kann zwischen DHCP und statischer IP gewechselt werden – sowohl für Ethernet als auch für WiFi. Für statische IP bitte `IP`, `Gateway`, `Netmask` und `DNS` eintragen. (WiFi-Änderungen werden nach einem Reboot zuverlässig aktiv.)
 
+### Hostname
+
+Unter **Config** kann ein Hostname gesetzt werden. Dieser wird sowohl für WLAN als auch für Ethernet verwendet.
+
 ### WLAN bei aktivem LAN
 
 Wenn Ethernet Link + IP hat, wird WLAN automatisch deaktiviert. Fällt Ethernet weg, wird WLAN wieder aktiviert.
+Wenn kein WLAN eingerichtet ist und LAN wegfällt, startet der ESP nach einem Reboot das WLAN‑Konfigurationsportal (Access Point), damit die Ersteinrichtung möglich ist.
+
+### Modbus aktivieren/deaktivieren
+
+Unter **Config** kann Modbus komplett deaktiviert werden. In diesem Fall wird im Status keine Register‑Aktualisierung angeboten.
 
 ## Darf ich das?
 
