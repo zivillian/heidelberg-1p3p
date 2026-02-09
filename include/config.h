@@ -49,6 +49,7 @@
             String _wifiDns1;
             String _wifiDns2;
             bool _modbusEnabled;
+            String _hostname;
         public:
             Config();
             void begin(Preferences *prefs);
@@ -80,6 +81,9 @@
             void setWifiDns2(String value);
             bool getModbusEnabled();
             void setModbusEnabled(bool value);
+            String getHostname();
+            void setHostname(String value);
+            static bool isHostnameValid(const String &value);
     };
 
 #endif /* CONFIG_H */

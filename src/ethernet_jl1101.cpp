@@ -122,6 +122,14 @@ String ethernetGetMacString()
     return String(mac_str);
 }
 
+bool ethernetSetHostname(const char *hostname)
+{
+    if (s_eth_netif == NULL || hostname == NULL || hostname[0] == '\0') {
+        return false;
+    }
+    return esp_netif_set_hostname(s_eth_netif, hostname) == ESP_OK;
+}
+
 bool ethernetConfigureDhcp()
 {
     if (s_eth_netif == NULL) {
@@ -274,6 +282,11 @@ String ethernetGetIpString()
 String ethernetGetMacString()
 {
     return String("");
+}
+
+bool ethernetSetHostname(const char *)
+{
+    return false;
 }
 
 bool ethernetConfigureDhcp()

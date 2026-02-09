@@ -113,6 +113,10 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
   });
   server->on("/config", HTTP_GET, [config](AsyncWebServerRequest *request){
     dbgln("[webserver] GET /config");
+    bool hostnameInvalid = false;
+    if (request->hasParam("err")) {
+      hostnameInvalid = request->getParam("err")->value() == "hostname";
+    }
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Config");
     response->print("<form method=\"post\">");
@@ -123,6 +127,19 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
         "</td>"
         "<td>");
     response->printf("<input type=\"number\" min=\"1\" id=\"sd\" name=\"sd\" value=\"%d\">", config->getSwitchDelay());
+    response->print("</td>"
+        "</tr>");
+    response->print("<tr>"
+        "<td>"
+          "<label for=\"hostname\">Hostname</label>"
+        "</td>"
+        "<td>");
+    response->printf("<input type=\"text\" id=\"hostname\" name=\"hostname\" value=\"%s\">", config->getHostname().c_str());
+    if (hostnameInvalid) {
+      response->print("<span class=\"e\" style=\"margin-left:0.6em;\">Ungültiger Hostname (1-32 Zeichen, A-Z, 0-9, '-'; kein '-' am Anfang/Ende)</span>");
+    }
+    response->print("</td>"
+        "</tr>");
     response->print("</td>"
         "</tr>");
     response->print("<tr>"
@@ -208,6 +225,19 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
       config->setSwitchDelay(delay);
       phaseSwitch->setSwitchDelay(delay);
       dbgln("[webserver] saved switch delay");
+    }
+    if (request->hasParam("hostname", true)){      String hostname = request->getParam("hostname", true)->value();
+      if (!Config::isHostnameValid(hostname)) {
+        request->redirect("/config?err=hostname");
+        return;
+      }
+      config->setHostname(hostname);
+      if (config->getHostname().length() > 0) {
+        WiFi.setHostname(config->getHostname().c_str());
+#ifdef BOARD_DINGTIAN
+        ethernetSetHostname(config->getHostname().c_str());
+#endif
+      }
     }
     if (request->hasParam("wifimode", true)){
       String mode = request->getParam("wifimode", true)->value();

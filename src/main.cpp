@@ -12,6 +12,10 @@ WiFiManager wm(debugOut);
 
 static void applyWifiConfig(Config &cfg)
 {
+  auto hostname = cfg.getHostname();
+  if (hostname.length() > 0) {
+    WiFi.setHostname(hostname.c_str());
+  }
   if (!cfg.getWifiDhcp()) {
     IPAddress ip;
     IPAddress gw;
@@ -64,6 +68,9 @@ void setup() {
 
 #ifdef BOARD_DINGTIAN
   setupEthernet();
+  if (config.getHostname().length() > 0) {
+    ethernetSetHostname(config.getHostname().c_str());
+  }
   if (config.getEthDhcp()) {
     ethernetConfigureDhcp();
   } else {
