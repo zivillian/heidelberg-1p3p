@@ -33,6 +33,15 @@ void PhaseSwitch::beginModbus(){
   _bridge.start(502, 10, 30000);
 }
 
+ModbusMessage PhaseSwitch::bridgeCall(ModbusMessage msg){
+  if (_bridgeWorker){
+    return _bridgeWorker(msg);
+  }
+  ModbusMessage response;
+  response.setError(msg.getServerID(), msg.getFunctionCode(), ILLEGAL_FUNCTION);
+  return response;
+}
+
 void PhaseSwitch::loop(){
   if (_delay > 0){
     if (millis() - _previous < _delay){
@@ -332,7 +341,7 @@ ModbusMessage PhaseSwitch::onWriteHolding(ModbusMessage msg){
 }
 
 ModbusMessage PhaseSwitch::cacheWriteHolding(ModbusMessage msg){
-  auto response = _bridgeWorker(msg);
+  auto response = bridgeCall(msg);
   if (response.getError() == SUCCESS){
     uint16_t addr = 0;
     uint16_t value = 0;
@@ -376,7 +385,7 @@ ModbusMessage PhaseSwitch::onWriteMultiple(ModbusMessage msg){
 }
 
 ModbusMessage PhaseSwitch::cacheWriteMultiple(ModbusMessage msg){
-  auto response = _bridgeWorker(msg);
+  auto response = bridgeCall(msg);
   if (response.getError() == SUCCESS){
     uint16_t addr = 0;
     uint16_t words = 0;
@@ -434,7 +443,7 @@ ModbusMessage PhaseSwitch::onReadHolding(ModbusMessage msg){
 }
 
 ModbusMessage PhaseSwitch::cacheReadHolding(ModbusMessage msg){
-  auto response = _bridgeWorker(msg);
+  auto response = bridgeCall(msg);
   if (response.getError() == SUCCESS){
     uint16_t addr = 0;
     uint16_t words = 0;
@@ -478,7 +487,7 @@ ModbusMessage PhaseSwitch::onReadInput(ModbusMessage msg){
 }
 
 ModbusMessage PhaseSwitch::cacheReadInput(ModbusMessage msg){
-  auto response = _bridgeWorker(msg);
+  auto response = bridgeCall(msg);
   if (response.getError() == SUCCESS){
     uint16_t addr = 0;
     uint16_t words = 0;

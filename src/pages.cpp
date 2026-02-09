@@ -26,7 +26,7 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendResponseTrailer(response);
     request->send(response);
   });
-  server->on("/status", HTTP_GET, [phaseSwitch](AsyncWebServerRequest *request){
+  server->on("/status", HTTP_GET, [phaseSwitch, config](AsyncWebServerRequest *request){
     dbgln("[webserver] GET /status");
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Status");
@@ -77,10 +77,14 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendTableRow(response, "Build time", __DATE__ " " __TIME__);
     sendTableRow(response, "Uptime", Uptime());
     response->print("</table><p></p>");
-    response->print("<form method=\"post\">"
-      "<button class=\"r\">Update register</button>"
-      "</form>"
-      "<p></p>");
+    if (config->getModbusEnabled()){
+      response->print("<form method=\"post\">"
+        "<button class=\"r\">Update register</button>"
+        "</form>"
+        "<p></p>");
+    } else {
+      response->print("<p class=\"e\">Modbus disabled in config; register update not available.</p>");
+    }
     sendButton(response, "Back", "/");
     sendResponseTrailer(response);
     request->send(response);
