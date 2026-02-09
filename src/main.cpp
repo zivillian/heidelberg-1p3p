@@ -130,6 +130,7 @@ void loop() {
 #ifdef BOARD_DINGTIAN
   debugOut.loop();
   static bool wifi_disabled_by_eth = false;
+  static bool wifi_portal_triggered = false;
   if (ethernetHasLink() && ethernetHasIp()) {
     if (!wifi_disabled_by_eth && WiFi.getMode() != WIFI_OFF) {
       dbgln("[wifi] disabled due to ethernet");
@@ -142,6 +143,12 @@ void loop() {
       enableWifiAfterEthernet(config);
       WiFi.reconnect();
       wifi_disabled_by_eth = false;
+    }
+    if (!wifi_portal_triggered && !wm.getWiFiIsSaved()) {
+      dbgln("[wifi] no saved credentials, rebooting into config portal");
+      wifi_portal_triggered = true;
+      delay(100);
+      ESP.restart();
     }
   }
 #endif
