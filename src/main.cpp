@@ -35,6 +35,8 @@ void setup() {
     dns1.fromString(config.getWifiDns1());
     dns2.fromString(config.getWifiDns2());
     WiFi.config(ip, gw, mask, dns1, dns2);
+  } else {
+    WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
   }
 
 #ifdef BOARD_DINGTIAN
