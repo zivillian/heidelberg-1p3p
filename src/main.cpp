@@ -1,4 +1,5 @@
 #include "main.h"
+#include "ethernet_jl1101.h"
 
 AsyncWebServer webServer(80);
 Config config;
@@ -22,6 +23,11 @@ void setup() {
   phaseSwitch.setSwitchDelay(config.getSwitchDelay());
   dbgln("[wifi] start");
   WiFi.mode(WIFI_STA);
+
+#ifdef BOARD_DINGTIAN
+  setupEthernet();
+  const bool eth_ok = ethernetWaitForIp(5000);
+#endif
   
 #ifdef BOARD_DINGTIAN
   debugOut.begin(23, false);
@@ -34,7 +40,13 @@ void setup() {
   wm.setClass("invert");
   auto reboot = false;
   wm.setAPCallback([&reboot](WiFiManager *wifiManager){reboot = true;});
+#ifdef BOARD_DINGTIAN
+  if (!eth_ok) {
+    wm.autoConnect();
+  }
+#else
   wm.autoConnect();
+#endif
   if (reboot){
     ESP.restart();
   }
