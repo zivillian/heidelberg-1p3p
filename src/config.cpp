@@ -9,6 +9,12 @@ Config::Config()
     ,_ethMask("255.255.255.0")
     ,_ethDns1("192.168.178.1")
     ,_ethDns2("")
+    ,_wifiDhcp(true)
+    ,_wifiIp("192.168.178.201")
+    ,_wifiGw("192.168.178.1")
+    ,_wifiMask("255.255.255.0")
+    ,_wifiDns1("192.168.178.1")
+    ,_wifiDns2("")
 {}
 
 void Config::begin(Preferences *prefs)
@@ -21,6 +27,12 @@ void Config::begin(Preferences *prefs)
     _ethMask = _prefs->getString("ethMask", _ethMask);
     _ethDns1 = _prefs->getString("ethDns1", _ethDns1);
     _ethDns2 = _prefs->getString("ethDns2", _ethDns2);
+    _wifiDhcp = _prefs->getBool("wifiDhcp", _wifiDhcp);
+    _wifiIp = _prefs->getString("wifiIp", _wifiIp);
+    _wifiGw = _prefs->getString("wifiGw", _wifiGw);
+    _wifiMask = _prefs->getString("wifiMask", _wifiMask);
+    _wifiDns1 = _prefs->getString("wifiDns1", _wifiDns1);
+    _wifiDns2 = _prefs->getString("wifiDns2", _wifiDns2);
 }
 
 uint32_t Config::getSwitchDelay(){
@@ -91,4 +103,64 @@ void Config::setEthDns2(String value){
     if (_ethDns2 == value) return;
     _ethDns2 = value;
     _prefs->putString("ethDns2", _ethDns2);
+}
+
+bool Config::getWifiDhcp(){
+    return _wifiDhcp;
+}
+
+void Config::setWifiDhcp(bool value){
+    if (_wifiDhcp == value) return;
+    _wifiDhcp = value;
+    _prefs->putBool("wifiDhcp", _wifiDhcp);
+}
+
+String Config::getWifiIp(){
+    return _wifiIp;
+}
+
+void Config::setWifiIp(String value){
+    if (_wifiIp == value) return;
+    _wifiIp = value;
+    _prefs->putString("wifiIp", _wifiIp);
+}
+
+String Config::getWifiGw(){
+    return _wifiGw;
+}
+
+void Config::setWifiGw(String value){
+    if (_wifiGw == value) return;
+    _wifiGw = value;
+    _prefs->putString("wifiGw", _wifiGw);
+}
+
+String Config::getWifiMask(){
+    return _wifiMask;
+}
+
+void Config::setWifiMask(String value){
+    if (_wifiMask == value) return;
+    _wifiMask = value;
+    _prefs->putString("wifiMask", _wifiMask);
+}
+
+String Config::getWifiDns1(){
+    return _wifiDns1;
+}
+
+void Config::setWifiDns1(String value){
+    if (_wifiDns1 == value) return;
+    _wifiDns1 = value;
+    _prefs->putString("wifiDns1", _wifiDns1);
+}
+
+String Config::getWifiDns2(){
+    return _wifiDns2;
+}
+
+void Config::setWifiDns2(String value){
+    if (_wifiDns2 == value) return;
+    _wifiDns2 = value;
+    _prefs->putString("wifiDns2", _wifiDns2);
 }

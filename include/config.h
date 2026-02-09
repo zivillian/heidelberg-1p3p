@@ -42,6 +42,12 @@
             String _ethMask;
             String _ethDns1;
             String _ethDns2;
+            bool _wifiDhcp;
+            String _wifiIp;
+            String _wifiGw;
+            String _wifiMask;
+            String _wifiDns1;
+            String _wifiDns2;
         public:
             Config();
             void begin(Preferences *prefs);
@@ -59,6 +65,18 @@
             void setEthDns1(String value);
             String getEthDns2();
             void setEthDns2(String value);
+            bool getWifiDhcp();
+            void setWifiDhcp(bool value);
+            String getWifiIp();
+            void setWifiIp(String value);
+            String getWifiGw();
+            void setWifiGw(String value);
+            String getWifiMask();
+            void setWifiMask(String value);
+            String getWifiDns1();
+            void setWifiDns1(String value);
+            String getWifiDns2();
+            void setWifiDns2(String value);
     };
 
 #endif /* CONFIG_H */

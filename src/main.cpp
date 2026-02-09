@@ -23,6 +23,19 @@ void setup() {
   phaseSwitch.setSwitchDelay(config.getSwitchDelay());
   dbgln("[wifi] start");
   WiFi.mode(WIFI_STA);
+  if (!config.getWifiDhcp()) {
+    IPAddress ip;
+    IPAddress gw;
+    IPAddress mask;
+    IPAddress dns1;
+    IPAddress dns2;
+    ip.fromString(config.getWifiIp());
+    gw.fromString(config.getWifiGw());
+    mask.fromString(config.getWifiMask());
+    dns1.fromString(config.getWifiDns1());
+    dns2.fromString(config.getWifiDns2());
+    WiFi.config(ip, gw, mask, dns1, dns2);
+  }
 
 #ifdef BOARD_DINGTIAN
   setupEthernet();

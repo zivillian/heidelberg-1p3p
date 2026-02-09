@@ -121,6 +121,27 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     response->printf("<input type=\"number\" min=\"1\" id=\"sd\" name=\"sd\" value=\"%d\">", config->getSwitchDelay());
     response->print("</td>"
         "</tr>");
+    response->print("<tr>"
+        "<td>"
+          "<label>WiFi mode</label>"
+        "</td>"
+        "<td>");
+    response->printf("<label><input type=\"radio\" name=\"wifimode\" value=\"dhcp\" %s> DHCP</label>",
+                     config->getWifiDhcp() ? "checked" : "");
+    response->printf("<label><input type=\"radio\" name=\"wifimode\" value=\"static\" %s> Static</label>",
+                     config->getWifiDhcp() ? "" : "checked");
+    response->print("</td>"
+        "</tr>");
+    response->printf("<tr class=\"wifi-static\"><td><label for=\"wifiip\">WiFi IP</label></td><td><input type=\"text\" id=\"wifiip\" name=\"wifiip\" value=\"%s\"></td></tr>",
+                     config->getWifiIp().c_str());
+    response->printf("<tr class=\"wifi-static\"><td><label for=\"wifigw\">WiFi Gateway</label></td><td><input type=\"text\" id=\"wifigw\" name=\"wifigw\" value=\"%s\"></td></tr>",
+                     config->getWifiGw().c_str());
+    response->printf("<tr class=\"wifi-static\"><td><label for=\"wifimask\">WiFi Netmask</label></td><td><input type=\"text\" id=\"wifimask\" name=\"wifimask\" value=\"%s\"></td></tr>",
+                     config->getWifiMask().c_str());
+    response->printf("<tr class=\"wifi-static\"><td><label for=\"wifidns1\">WiFi DNS 1</label></td><td><input type=\"text\" id=\"wifidns1\" name=\"wifidns1\" value=\"%s\"></td></tr>",
+                     config->getWifiDns1().c_str());
+    response->printf("<tr class=\"wifi-static\"><td><label for=\"wifidns2\">WiFi DNS 2</label></td><td><input type=\"text\" id=\"wifidns2\" name=\"wifidns2\" value=\"%s\"></td></tr>",
+                     config->getWifiDns2().c_str());
 #ifdef BOARD_DINGTIAN
     response->print("<tr>"
         "<td>"
@@ -133,18 +154,38 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
                      config->getEthDhcp() ? "" : "checked");
     response->print("</td>"
         "</tr>");
-    response->printf("<tr><td><label for=\"ethip\">Ethernet IP</label></td><td><input type=\"text\" id=\"ethip\" name=\"ethip\" value=\"%s\"></td></tr>",
+    response->printf("<tr class=\"eth-static\"><td><label for=\"ethip\">Ethernet IP</label></td><td><input type=\"text\" id=\"ethip\" name=\"ethip\" value=\"%s\"></td></tr>",
                      config->getEthIp().c_str());
-    response->printf("<tr><td><label for=\"ethgw\">Ethernet Gateway</label></td><td><input type=\"text\" id=\"ethgw\" name=\"ethgw\" value=\"%s\"></td></tr>",
+    response->printf("<tr class=\"eth-static\"><td><label for=\"ethgw\">Ethernet Gateway</label></td><td><input type=\"text\" id=\"ethgw\" name=\"ethgw\" value=\"%s\"></td></tr>",
                      config->getEthGw().c_str());
-    response->printf("<tr><td><label for=\"ethmask\">Ethernet Netmask</label></td><td><input type=\"text\" id=\"ethmask\" name=\"ethmask\" value=\"%s\"></td></tr>",
+    response->printf("<tr class=\"eth-static\"><td><label for=\"ethmask\">Ethernet Netmask</label></td><td><input type=\"text\" id=\"ethmask\" name=\"ethmask\" value=\"%s\"></td></tr>",
                      config->getEthMask().c_str());
-    response->printf("<tr><td><label for=\"ethdns1\">Ethernet DNS 1</label></td><td><input type=\"text\" id=\"ethdns1\" name=\"ethdns1\" value=\"%s\"></td></tr>",
+    response->printf("<tr class=\"eth-static\"><td><label for=\"ethdns1\">Ethernet DNS 1</label></td><td><input type=\"text\" id=\"ethdns1\" name=\"ethdns1\" value=\"%s\"></td></tr>",
                      config->getEthDns1().c_str());
-    response->printf("<tr><td><label for=\"ethdns2\">Ethernet DNS 2</label></td><td><input type=\"text\" id=\"ethdns2\" name=\"ethdns2\" value=\"%s\"></td></tr>",
+    response->printf("<tr class=\"eth-static\"><td><label for=\"ethdns2\">Ethernet DNS 2</label></td><td><input type=\"text\" id=\"ethdns2\" name=\"ethdns2\" value=\"%s\"></td></tr>",
                      config->getEthDns2().c_str());
 #endif
     response->print("</table>");
+    response->print("<p style=\"font-size:0.9em;opacity:0.8;\">"
+                    "Hinweis: Statische IP-Einstellungen werden nach einem Reboot zuverlässig aktiv."
+                    "</p>");
+    response->print(
+      "<script>"
+      "function toggleRows(group, show){"
+        "var rows=document.getElementsByClassName(group+'-static');"
+        "for(var i=0;i<rows.length;i++){rows[i].style.display=show?'table-row':'none';}"
+      "}"
+      "function updateNetMode(){"
+        "var w=document.querySelector('input[name=\"wifimode\"]:checked');"
+        "var e=document.querySelector('input[name=\"ethmode\"]:checked');"
+        "toggleRows('wifi', w && w.value==='static');"
+        "toggleRows('eth', e && e.value==='static');"
+      "}"
+      "var radios=document.querySelectorAll('input[name=\"wifimode\"],input[name=\"ethmode\"]');"
+      "for(var i=0;i<radios.length;i++){radios[i].addEventListener('change', updateNetMode);}"
+      "updateNetMode();"
+      "</script>"
+    );
     response->print("<button class=\"r\">Save</button>"
       "</form>"
       "<p></p>");
@@ -159,6 +200,25 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
       config->setSwitchDelay(delay);
       phaseSwitch->setSwitchDelay(delay);
       dbgln("[webserver] saved switch delay");
+    }
+    if (request->hasParam("wifimode", true)){
+      String mode = request->getParam("wifimode", true)->value();
+      config->setWifiDhcp(mode == "dhcp");
+    }
+    if (request->hasParam("wifiip", true)){
+      config->setWifiIp(request->getParam("wifiip", true)->value());
+    }
+    if (request->hasParam("wifigw", true)){
+      config->setWifiGw(request->getParam("wifigw", true)->value());
+    }
+    if (request->hasParam("wifimask", true)){
+      config->setWifiMask(request->getParam("wifimask", true)->value());
+    }
+    if (request->hasParam("wifidns1", true)){
+      config->setWifiDns1(request->getParam("wifidns1", true)->value());
+    }
+    if (request->hasParam("wifidns2", true)){
+      config->setWifiDns2(request->getParam("wifidns2", true)->value());
     }
 #ifdef BOARD_DINGTIAN
     if (request->hasParam("ethmode", true)){
