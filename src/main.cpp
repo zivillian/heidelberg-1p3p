@@ -1,5 +1,6 @@
 #include "main.h"
 #include "ethernet_jl1101.h"
+#include "esp_wifi.h"
 
 AsyncWebServer webServer(80);
 Config config;
@@ -51,6 +52,18 @@ static void enableWifiAfterEthernet(Config &cfg)
   WiFi.begin();
 }
 
+static void syncWifiCredsFlag(Config &cfg)
+{
+#ifdef ESP32
+  wifi_config_t wifi_cfg;
+  if (esp_wifi_get_config(WIFI_IF_STA, &wifi_cfg) == ESP_OK) {
+    if (wifi_cfg.sta.ssid[0] != '\0') {
+      cfg.setWifiCredsSet(true);
+    }
+  }
+#endif
+}
+
 void setup() {
 #ifndef BOARD_DINGTIAN
   debugOut.begin(115200);
@@ -65,6 +78,7 @@ void setup() {
   dbgln("[wifi] start");
   WiFi.mode(WIFI_STA);
   applyWifiConfig(config);
+  syncWifiCredsFlag(config);
 
 #ifdef BOARD_DINGTIAN
   setupEthernet();
@@ -100,6 +114,7 @@ void setup() {
   wm.setClass("invert");
   auto reboot = false;
   wm.setAPCallback([&reboot](WiFiManager *wifiManager){reboot = true;});
+  wm.setSaveConfigCallback([&](){ config.setWifiCredsSet(true); });
 #ifdef BOARD_DINGTIAN
   if (!eth_ok) {
     wm.autoConnect();

@@ -56,6 +56,7 @@ Config::Config()
     ,_wifiMask("255.255.255.0")
     ,_wifiDns1("192.168.178.1")
     ,_wifiDns2("")
+    ,_wifiCredsSet(false)
     ,_modbusEnabled(true)
     ,_hostname("heidelberg-1p3p")
 {}
@@ -76,6 +77,7 @@ void Config::begin(Preferences *prefs)
     if (_prefs->isKey("wifiMask")) _wifiMask = _prefs->getString("wifiMask", _wifiMask);
     if (_prefs->isKey("wifiDns1")) _wifiDns1 = _prefs->getString("wifiDns1", _wifiDns1);
     if (_prefs->isKey("wifiDns2")) _wifiDns2 = _prefs->getString("wifiDns2", _wifiDns2);
+    if (_prefs->isKey("wifiCredsSet")) _wifiCredsSet = _prefs->getBool("wifiCredsSet", _wifiCredsSet);
     if (_prefs->isKey("modbusEnabled")) _modbusEnabled = _prefs->getBool("modbusEnabled", _modbusEnabled);
     if (_prefs->isKey("hostname")) {
         String stored = _prefs->getString("hostname", _hostname);
@@ -218,6 +220,16 @@ void Config::setWifiDns2(String value){
     if (_wifiDns2 == value) return;
     _wifiDns2 = value;
     _prefs->putString("wifiDns2", _wifiDns2);
+}
+
+bool Config::getWifiCredsSet(){
+    return _wifiCredsSet;
+}
+
+void Config::setWifiCredsSet(bool value){
+    if (_wifiCredsSet == value) return;
+    _wifiCredsSet = value;
+    _prefs->putBool("wifiCredsSet", _wifiCredsSet);
 }
 
 bool Config::getModbusEnabled(){

@@ -3,8 +3,23 @@
 #include <IPAddress.h>
 #include "ethernet_jl1101.h"
 #endif
+#include "esp_wifi.h"
+#include "esp_wifi.h"
 
 #define ETAG "\"" __DATE__ "" __TIME__ "\""
+
+static bool hasSavedWifiCredentials(Config *config)
+{
+#ifdef ESP32
+  wifi_config_t cfg;
+  if (esp_wifi_get_config(WIFI_IF_STA, &cfg) != ESP_OK) {
+    return config ? config->getWifiCredsSet() : false;
+  }
+  return cfg.sta.ssid[0] != '\0';
+#else
+  return config ? config->getWifiCredsSet() : false;
+#endif
+}
 
 void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config, WiFiManager *wm){
   server->on("/", HTTP_GET, [phaseSwitch](AsyncWebServerRequest *request){
@@ -26,7 +41,7 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendResponseTrailer(response);
     request->send(response);
   });
-  server->on("/status", HTTP_GET, [phaseSwitch, config](AsyncWebServerRequest *request){
+  server->on("/status", HTTP_GET, [phaseSwitch, config, wm](AsyncWebServerRequest *request){
     dbgln("[webserver] GET /status");
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Status");
@@ -441,9 +456,10 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendResponseTrailer(response);
     request->send(response);
   });
-  server->on("/wifi", HTTP_POST, [wm](AsyncWebServerRequest *request){
+  server->on("/wifi", HTTP_POST, [wm, config](AsyncWebServerRequest *request){
     dbgln("[webserver] POST /wifi");
     request->redirect("/");
+    config->setWifiCredsSet(false);
     wm->erase();
     dbgln("[webserver] erased wifi config");
     dbgln("[webserver] rebooting...");
