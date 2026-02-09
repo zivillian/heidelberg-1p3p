@@ -132,9 +132,8 @@ void loop() {
   } else {
     if (wifi_disabled_by_eth) {
       dbgln("[wifi] ethernet down, re-enabling wifi");
-      WiFi.disconnect(true);
-      delay(100);
       enableWifiAfterEthernet(config);
+      WiFi.reconnect();
       wifi_disabled_by_eth = false;
     }
   }
@@ -148,8 +147,8 @@ void loop() {
       } else if (millis() - wifi_no_ip_since > 10000) {
         dbgln("[wifi] no IP, restarting DHCP");
         WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
-        WiFi.disconnect(true);
-        WiFi.begin();
+        WiFi.disconnect(false, false);
+        WiFi.reconnect();
         wifi_no_ip_since = 0;
       }
     } else {
@@ -162,7 +161,7 @@ void loop() {
       } else if (millis() - wifi_reconnect_since > 15000) {
         dbgln("[wifi] not connected, retrying");
         applyWifiConfig(config);
-        WiFi.begin();
+        WiFi.reconnect();
         wifi_reconnect_since = 0;
       }
     } else {
@@ -172,5 +171,6 @@ void loop() {
     wifi_no_ip_since = 0;
     wifi_reconnect_since = 0;
   }
+  delay(1);
   phaseSwitch.loop();
 }
