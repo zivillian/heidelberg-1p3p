@@ -21,6 +21,28 @@ Ich habe meinen Prototyp gebaut und mit meiner Wallbox getestet - das sieht sehr
 1. evcc Patch upstreamen
 1. *Party*
 
+## Ethernet (Dingtian DT-R002)
+
+Der Dingtian DT-R002 (DEV) hat einen JL1101 PHY (RTL8201F kompatibel) und einen RMII Anschluss. In diesem Projekt ist Ethernet für das Board integriert. Pins:
+
+- RMII_CLK: `GPIO17`
+- MDC: `GPIO23`
+- MDIO: `GPIO18`
+- PHY RST/PWR: `GPIO0`
+
+### Aktivierung
+
+- Build-Umgebung: `env:dingtian`
+- Framework: Arduino als ESP-IDF Component (siehe `platformio.ini`)
+
+### Statusanzeige
+
+Unter **Status** werden die Ethernet MAC und IP angezeigt (zusätzlich zu WiFi).
+
+### DHCP vs. statische IP
+
+Unter **Config** kann zwischen DHCP und statischer IP gewechselt werden. Für statische IP bitte `IP`, `Gateway`, `Netmask` und `DNS` eintragen.
+
 ## Darf ich das?
 
 **Nope!**
