@@ -33,11 +33,14 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     response->print("<table>");
 
     // show ESP infos...
-    sendTableRow(response, "ESP SSID", WiFi.SSID());
-    sendTableRow(response, "ESP RSSI", (uint16_t)WiFi.RSSI());
-    sendTableRow(response, "ESP WiFi Quality", WiFiQuality(WiFi.RSSI()));
-    sendTableRow(response, "ESP MAC", WiFi.macAddress());
-    sendTableRow(response, "ESP IP",  WiFi.localIP().toString() );
+    const bool wifi_connected = (WiFi.getMode() != WIFI_OFF) && (WiFi.status() == WL_CONNECTED);
+    const bool wifi_creds_set = hasSavedWifiCredentials(config);
+    sendTableRow(response, "WiFi Credentials", wifi_creds_set ? "set" : "not set");
+    sendTableRow(response, "WiFi SSID", WiFi.SSID());
+    sendTableRow(response, "WiFi RSSI", (uint16_t)WiFi.RSSI());
+    sendTableRow(response, "WiFi Quality", wifi_connected ? WiFiQuality(WiFi.RSSI()) : String(""));
+    sendTableRow(response, "WiFi MAC", WiFi.macAddress());
+    sendTableRow(response, "WiFi IP",  wifi_connected ? WiFi.localIP().toString() : String("") );
 #ifdef BOARD_DINGTIAN
     sendTableRow(response, "ETH MAC", ethernetGetMacString());
     sendTableRow(response, "ETH IP", ethernetGetIpString());
@@ -136,10 +139,8 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
         "<td>");
     response->printf("<input type=\"text\" id=\"hostname\" name=\"hostname\" value=\"%s\">", config->getHostname().c_str());
     if (hostnameInvalid) {
-      response->print("<span class=\"e\" style=\"margin-left:0.6em;\">Ungültiger Hostname (1-32 Zeichen, A-Z, 0-9, '-'; kein '-' am Anfang/Ende)</span>");
+      response->print("<span class=\"e\" style=\"margin-left:0.6em;\">Ung&uuml;ltiger Hostname (1-32 Zeichen, A-Z, 0-9, '-'; kein '-' am Anfang/Ende)</span>");
     }
-    response->print("</td>"
-        "</tr>");
     response->print("</td>"
         "</tr>");
     response->print("<tr>"
@@ -192,7 +193,7 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     response->print(config->getModbusEnabled() ? "checked" : "");
     response->print("> Modbus/RS485 aktiv</label>");
     response->print("<p style=\"font-size:0.9em;opacity:0.8;\">"
-                    "Hinweis: Statische IP-Einstellungen werden nach einem Reboot zuverlässig aktiv."
+                    "Hinweis: Statische IP-Einstellungen werden nach einem Reboot aktiv."
                     "</p>");
     response->print(
       "<script>"
@@ -226,7 +227,8 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
       phaseSwitch->setSwitchDelay(delay);
       dbgln("[webserver] saved switch delay");
     }
-    if (request->hasParam("hostname", true)){      String hostname = request->getParam("hostname", true)->value();
+    if (request->hasParam("hostname", true)){
+      String hostname = request->getParam("hostname", true)->value();
       if (!Config::isHostnameValid(hostname)) {
         request->redirect("/config?err=hostname");
         return;
