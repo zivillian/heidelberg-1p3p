@@ -13,6 +13,10 @@
         #define PIN_RS485_DE 33
         #define PIN_FACTORY_LED 32
         #define PIN_FACTORY_BTN 34
+        #define PIN_ETH_MDC 23
+        #define PIN_ETH_MDIO 18
+        #define PIN_ETH_PWR 0
+        #define PIN_ETH_CLK 17
         #define RELAY_ON HIGH
         #define RELAY_OFF LOW
     #else
