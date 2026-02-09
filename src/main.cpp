@@ -95,6 +95,21 @@ void loop() {
   uptime::calculateUptime();
 #ifdef BOARD_DINGTIAN
   debugOut.loop();
+  static bool wifi_disabled_by_eth = false;
+  if (ethernetHasLink() && ethernetHasIp()) {
+    if (!wifi_disabled_by_eth && WiFi.getMode() != WIFI_OFF) {
+      dbgln("[wifi] disabled due to ethernet");
+      WiFi.mode(WIFI_OFF);
+      wifi_disabled_by_eth = true;
+    }
+  } else {
+    if (wifi_disabled_by_eth) {
+      dbgln("[wifi] ethernet down, re-enabling wifi");
+      WiFi.mode(WIFI_STA);
+      WiFi.begin();
+      wifi_disabled_by_eth = false;
+    }
+  }
 #endif
   phaseSwitch.loop();
 }

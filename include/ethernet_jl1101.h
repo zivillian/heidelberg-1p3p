@@ -6,6 +6,7 @@
 
 bool setupEthernet();
 bool ethernetHasIp();
+bool ethernetHasLink();
 bool ethernetWaitForIp(uint32_t timeout_ms);
 String ethernetGetIpString();
 String ethernetGetMacString();

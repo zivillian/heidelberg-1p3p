@@ -22,6 +22,7 @@ extern "C" {
 static esp_eth_handle_t s_eth_handle = NULL;
 static esp_netif_t *s_eth_netif = NULL;
 static volatile bool s_eth_got_ip = false;
+static volatile bool s_eth_link_up = false;
 
 static void onEthEvent(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
@@ -37,6 +38,7 @@ static void onEthEvent(void *arg, esp_event_base_t event_base, int32_t event_id,
             dbgln("[eth] stop");
             break;
         case ETHERNET_EVENT_CONNECTED: {
+            s_eth_link_up = true;
             uint8_t mac[6] = {0};
             if (s_eth_handle) {
                 esp_eth_ioctl(s_eth_handle, ETH_CMD_G_MAC_ADDR, mac);
@@ -48,6 +50,7 @@ static void onEthEvent(void *arg, esp_event_base_t event_base, int32_t event_id,
             break;
         }
         case ETHERNET_EVENT_DISCONNECTED:
+            s_eth_link_up = false;
             dbgln("[eth] link down");
             break;
         default:
@@ -71,6 +74,11 @@ static void onGotIp(void *arg, esp_event_base_t event_base, int32_t event_id, vo
 bool ethernetHasIp()
 {
     return s_eth_got_ip;
+}
+
+bool ethernetHasLink()
+{
+    return s_eth_link_up;
 }
 
 bool ethernetWaitForIp(uint32_t timeout_ms)
@@ -167,6 +175,7 @@ bool setupEthernet()
     }
 
     s_eth_got_ip = false;
+    s_eth_link_up = false;
 
     esp_err_t err = esp_netif_init();
     if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
@@ -243,6 +252,11 @@ bool setupEthernet()
 }
 
 bool ethernetHasIp()
+{
+    return false;
+}
+
+bool ethernetHasLink()
 {
     return false;
 }
