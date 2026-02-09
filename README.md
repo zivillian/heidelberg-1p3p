@@ -37,7 +37,7 @@ Der Dingtian DT-R002 (DEV) hat einen JL1101 PHY (RTL8201F kompatibel) und einen 
 
 ### Statusanzeige
 
-Unter **Status** werden die Ethernet MAC und IP angezeigt (zusätzlich zu WiFi). Wenn WLAN oder LAN nicht aktiv sind, werden deren IP‑Felder leer gelassen.
+Unter **Status** werden die Ethernet MAC und IP angezeigt (zusätzlich zu WiFi). Wenn WLAN oder LAN nicht aktiv sind, werden deren IP‑Felder leer gelassen. Zusätzlich wird angezeigt, ob WLAN‑Credentials gesetzt sind.
 
 ### DHCP vs. statische IP
 
