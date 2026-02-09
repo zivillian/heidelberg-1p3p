@@ -36,11 +36,29 @@
         private:
             Preferences *_prefs;
             uint32_t _switchDelay;
+            bool _ethDhcp;
+            String _ethIp;
+            String _ethGw;
+            String _ethMask;
+            String _ethDns1;
+            String _ethDns2;
         public:
             Config();
             void begin(Preferences *prefs);
             uint32_t getSwitchDelay();
             void setSwitchDelay(uint32_t value);
+            bool getEthDhcp();
+            void setEthDhcp(bool value);
+            String getEthIp();
+            void setEthIp(String value);
+            String getEthGw();
+            void setEthGw(String value);
+            String getEthMask();
+            void setEthMask(String value);
+            String getEthDns1();
+            void setEthDns1(String value);
+            String getEthDns2();
+            void setEthDns2(String value);
     };
 
 #endif /* CONFIG_H */

@@ -26,6 +26,21 @@ void setup() {
 
 #ifdef BOARD_DINGTIAN
   setupEthernet();
+  if (config.getEthDhcp()) {
+    ethernetConfigureDhcp();
+  } else {
+    IPAddress ip;
+    IPAddress gw;
+    IPAddress mask;
+    IPAddress dns1;
+    IPAddress dns2;
+    ip.fromString(config.getEthIp());
+    gw.fromString(config.getEthGw());
+    mask.fromString(config.getEthMask());
+    dns1.fromString(config.getEthDns1());
+    dns2.fromString(config.getEthDns2());
+    ethernetConfigureStatic(ip, gw, mask, dns1, dns2);
+  }
   const bool eth_ok = ethernetWaitForIp(5000);
 #endif
   

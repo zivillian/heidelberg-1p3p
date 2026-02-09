@@ -1,4 +1,8 @@
 #include "pages.h"
+#ifdef BOARD_DINGTIAN
+#include <IPAddress.h>
+#include "ethernet_jl1101.h"
+#endif
 
 #define ETAG "\"" __DATE__ "" __TIME__ "\""
 
@@ -34,6 +38,10 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendTableRow(response, "ESP WiFi Quality", WiFiQuality(WiFi.RSSI()));
     sendTableRow(response, "ESP MAC", WiFi.macAddress());
     sendTableRow(response, "ESP IP",  WiFi.localIP().toString() );
+#ifdef BOARD_DINGTIAN
+    sendTableRow(response, "ETH MAC", ethernetGetMacString());
+    sendTableRow(response, "ETH IP", ethernetGetIpString());
+#endif
     response->print("<tr><td>&nbsp;</td><td></td></tr>");
 
     sendTableRow(response, "RTU Messages", phaseSwitch->getRtuMessageCount());
@@ -112,8 +120,31 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
         "<td>");
     response->printf("<input type=\"number\" min=\"1\" id=\"sd\" name=\"sd\" value=\"%d\">", config->getSwitchDelay());
     response->print("</td>"
-        "</tr>"
-        "</table>");
+        "</tr>");
+#ifdef BOARD_DINGTIAN
+    response->print("<tr>"
+        "<td>"
+          "<label>Ethernet mode</label>"
+        "</td>"
+        "<td>");
+    response->printf("<label><input type=\"radio\" name=\"ethmode\" value=\"dhcp\" %s> DHCP</label>",
+                     config->getEthDhcp() ? "checked" : "");
+    response->printf("<label><input type=\"radio\" name=\"ethmode\" value=\"static\" %s> Static</label>",
+                     config->getEthDhcp() ? "" : "checked");
+    response->print("</td>"
+        "</tr>");
+    response->printf("<tr><td><label for=\"ethip\">Ethernet IP</label></td><td><input type=\"text\" id=\"ethip\" name=\"ethip\" value=\"%s\"></td></tr>",
+                     config->getEthIp().c_str());
+    response->printf("<tr><td><label for=\"ethgw\">Ethernet Gateway</label></td><td><input type=\"text\" id=\"ethgw\" name=\"ethgw\" value=\"%s\"></td></tr>",
+                     config->getEthGw().c_str());
+    response->printf("<tr><td><label for=\"ethmask\">Ethernet Netmask</label></td><td><input type=\"text\" id=\"ethmask\" name=\"ethmask\" value=\"%s\"></td></tr>",
+                     config->getEthMask().c_str());
+    response->printf("<tr><td><label for=\"ethdns1\">Ethernet DNS 1</label></td><td><input type=\"text\" id=\"ethdns1\" name=\"ethdns1\" value=\"%s\"></td></tr>",
+                     config->getEthDns1().c_str());
+    response->printf("<tr><td><label for=\"ethdns2\">Ethernet DNS 2</label></td><td><input type=\"text\" id=\"ethdns2\" name=\"ethdns2\" value=\"%s\"></td></tr>",
+                     config->getEthDns2().c_str());
+#endif
+    response->print("</table>");
     response->print("<button class=\"r\">Save</button>"
       "</form>"
       "<p></p>");
@@ -129,6 +160,42 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
       phaseSwitch->setSwitchDelay(delay);
       dbgln("[webserver] saved switch delay");
     }
+#ifdef BOARD_DINGTIAN
+    if (request->hasParam("ethmode", true)){
+      String mode = request->getParam("ethmode", true)->value();
+      config->setEthDhcp(mode == "dhcp");
+    }
+    if (request->hasParam("ethip", true)){
+      config->setEthIp(request->getParam("ethip", true)->value());
+    }
+    if (request->hasParam("ethgw", true)){
+      config->setEthGw(request->getParam("ethgw", true)->value());
+    }
+    if (request->hasParam("ethmask", true)){
+      config->setEthMask(request->getParam("ethmask", true)->value());
+    }
+    if (request->hasParam("ethdns1", true)){
+      config->setEthDns1(request->getParam("ethdns1", true)->value());
+    }
+    if (request->hasParam("ethdns2", true)){
+      config->setEthDns2(request->getParam("ethdns2", true)->value());
+    }
+    if (config->getEthDhcp()) {
+      ethernetConfigureDhcp();
+    } else {
+      IPAddress ip;
+      IPAddress gw;
+      IPAddress mask;
+      IPAddress dns1;
+      IPAddress dns2;
+      ip.fromString(config->getEthIp());
+      gw.fromString(config->getEthGw());
+      mask.fromString(config->getEthMask());
+      dns1.fromString(config->getEthDns1());
+      dns2.fromString(config->getEthDns2());
+      ethernetConfigureStatic(ip, gw, mask, dns1, dns2);
+    }
+#endif
     request->redirect("/");
   });
   server->on("/1p", HTTP_POST, [phaseSwitch](AsyncWebServerRequest *request){
