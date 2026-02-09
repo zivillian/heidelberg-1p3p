@@ -10,6 +10,43 @@ TelnetPrint debugOut;
 #endif
 WiFiManager wm(debugOut);
 
+static void applyWifiConfig(Config &cfg)
+{
+  if (!cfg.getWifiDhcp()) {
+    IPAddress ip;
+    IPAddress gw;
+    IPAddress mask;
+    IPAddress dns1;
+    IPAddress dns2;
+    ip.fromString(cfg.getWifiIp());
+    gw.fromString(cfg.getWifiGw());
+    mask.fromString(cfg.getWifiMask());
+    dns1.fromString(cfg.getWifiDns1());
+    dns2.fromString(cfg.getWifiDns2());
+    WiFi.config(ip, gw, mask, dns1, dns2);
+  } else {
+    WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
+  }
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
+}
+
+static void disableWifiForEthernet()
+{
+  WiFi.softAPdisconnect(true);
+  WiFi.enableAP(false);
+  WiFi.mode(WIFI_OFF);
+}
+
+static void enableWifiAfterEthernet(Config &cfg)
+{
+  WiFi.softAPdisconnect(true);
+  WiFi.enableAP(false);
+  WiFi.mode(WIFI_STA);
+  applyWifiConfig(cfg);
+  WiFi.begin();
+}
+
 void setup() {
 #ifndef BOARD_DINGTIAN
   debugOut.begin(115200);
@@ -23,21 +60,7 @@ void setup() {
   phaseSwitch.setSwitchDelay(config.getSwitchDelay());
   dbgln("[wifi] start");
   WiFi.mode(WIFI_STA);
-  if (!config.getWifiDhcp()) {
-    IPAddress ip;
-    IPAddress gw;
-    IPAddress mask;
-    IPAddress dns1;
-    IPAddress dns2;
-    ip.fromString(config.getWifiIp());
-    gw.fromString(config.getWifiGw());
-    mask.fromString(config.getWifiMask());
-    dns1.fromString(config.getWifiDns1());
-    dns2.fromString(config.getWifiDns2());
-    WiFi.config(ip, gw, mask, dns1, dns2);
-  } else {
-    WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
-  }
+  applyWifiConfig(config);
 
 #ifdef BOARD_DINGTIAN
   setupEthernet();
@@ -99,17 +122,51 @@ void loop() {
   if (ethernetHasLink() && ethernetHasIp()) {
     if (!wifi_disabled_by_eth && WiFi.getMode() != WIFI_OFF) {
       dbgln("[wifi] disabled due to ethernet");
-      WiFi.mode(WIFI_OFF);
+      disableWifiForEthernet();
       wifi_disabled_by_eth = true;
     }
   } else {
     if (wifi_disabled_by_eth) {
       dbgln("[wifi] ethernet down, re-enabling wifi");
-      WiFi.mode(WIFI_STA);
-      WiFi.begin();
+      WiFi.disconnect(true);
+      delay(100);
+      enableWifiAfterEthernet(config);
       wifi_disabled_by_eth = false;
     }
   }
 #endif
+  static uint32_t wifi_no_ip_since = 0;
+  static uint32_t wifi_reconnect_since = 0;
+  if (WiFi.getMode() != WIFI_OFF) {
+    if (WiFi.status() == WL_CONNECTED && WiFi.localIP() == IPAddress(0, 0, 0, 0)) {
+      if (wifi_no_ip_since == 0) {
+        wifi_no_ip_since = millis();
+      } else if (millis() - wifi_no_ip_since > 10000) {
+        dbgln("[wifi] no IP, restarting DHCP");
+        WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
+        WiFi.disconnect(true);
+        WiFi.begin();
+        wifi_no_ip_since = 0;
+      }
+    } else {
+      wifi_no_ip_since = 0;
+    }
+
+    if (WiFi.status() != WL_CONNECTED) {
+      if (wifi_reconnect_since == 0) {
+        wifi_reconnect_since = millis();
+      } else if (millis() - wifi_reconnect_since > 15000) {
+        dbgln("[wifi] not connected, retrying");
+        applyWifiConfig(config);
+        WiFi.begin();
+        wifi_reconnect_since = 0;
+      }
+    } else {
+      wifi_reconnect_since = 0;
+    }
+  } else {
+    wifi_no_ip_since = 0;
+    wifi_reconnect_since = 0;
+  }
   phaseSwitch.loop();
 }
