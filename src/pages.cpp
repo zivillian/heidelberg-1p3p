@@ -1,6 +1,25 @@
 #include "pages.h"
+#ifdef BOARD_DINGTIAN
+#include <IPAddress.h>
+#include "ethernet_jl1101.h"
+#endif
+#include "esp_wifi.h"
+#include "esp_wifi.h"
 
 #define ETAG "\"" __DATE__ "" __TIME__ "\""
+
+static bool hasSavedWifiCredentials(Config *config)
+{
+#ifdef ESP32
+  wifi_config_t cfg;
+  if (esp_wifi_get_config(WIFI_IF_STA, &cfg) != ESP_OK) {
+    return config ? config->getWifiCredsSet() : false;
+  }
+  return cfg.sta.ssid[0] != '\0';
+#else
+  return config ? config->getWifiCredsSet() : false;
+#endif
+}
 
 void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config, WiFiManager *wm){
   server->on("/", HTTP_GET, [phaseSwitch](AsyncWebServerRequest *request){
@@ -22,18 +41,25 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendResponseTrailer(response);
     request->send(response);
   });
-  server->on("/status", HTTP_GET, [phaseSwitch](AsyncWebServerRequest *request){
+  server->on("/status", HTTP_GET, [phaseSwitch, config, wm](AsyncWebServerRequest *request){
     dbgln("[webserver] GET /status");
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Status");
     response->print("<table>");
 
     // show ESP infos...
-    sendTableRow(response, "ESP SSID", WiFi.SSID());
-    sendTableRow(response, "ESP RSSI", (uint16_t)WiFi.RSSI());
-    sendTableRow(response, "ESP WiFi Quality", WiFiQuality(WiFi.RSSI()));
-    sendTableRow(response, "ESP MAC", WiFi.macAddress());
-    sendTableRow(response, "ESP IP",  WiFi.localIP().toString() );
+    const bool wifi_connected = (WiFi.getMode() != WIFI_OFF) && (WiFi.status() == WL_CONNECTED);
+    const bool wifi_creds_set = hasSavedWifiCredentials(config);
+    sendTableRow(response, "WiFi Credentials", wifi_creds_set ? "set" : "not set");
+    sendTableRow(response, "WiFi SSID", WiFi.SSID());
+    sendTableRow(response, "WiFi RSSI", (uint16_t)WiFi.RSSI());
+    sendTableRow(response, "WiFi Quality", wifi_connected ? WiFiQuality(WiFi.RSSI()) : String(""));
+    sendTableRow(response, "WiFi MAC", WiFi.macAddress());
+    sendTableRow(response, "WiFi IP",  wifi_connected ? WiFi.localIP().toString() : String("") );
+#ifdef BOARD_DINGTIAN
+    sendTableRow(response, "ETH MAC", ethernetGetMacString());
+    sendTableRow(response, "ETH IP", ethernetGetIpString());
+#endif
     response->print("<tr><td>&nbsp;</td><td></td></tr>");
 
     sendTableRow(response, "RTU Messages", phaseSwitch->getRtuMessageCount());
@@ -69,10 +95,14 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendTableRow(response, "Build time", __DATE__ " " __TIME__);
     sendTableRow(response, "Uptime", Uptime());
     response->print("</table><p></p>");
-    response->print("<form method=\"post\">"
-      "<button class=\"r\">Update register</button>"
-      "</form>"
-      "<p></p>");
+    if (config->getModbusEnabled()){
+      response->print("<form method=\"post\">"
+        "<button class=\"r\">Update register</button>"
+        "</form>"
+        "<p></p>");
+    } else {
+      response->print("<p class=\"e\">Modbus disabled in config; register update not available.</p>");
+    }
     sendButton(response, "Back", "/");
     sendResponseTrailer(response);
     request->send(response);
@@ -101,6 +131,10 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
   });
   server->on("/config", HTTP_GET, [config](AsyncWebServerRequest *request){
     dbgln("[webserver] GET /config");
+    bool hostnameInvalid = false;
+    if (request->hasParam("err")) {
+      hostnameInvalid = request->getParam("err")->value() == "hostname";
+    }
     auto *response = request->beginResponseStream("text/html");
     sendResponseHeader(response, "Config");
     response->print("<form method=\"post\">");
@@ -112,8 +146,87 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
         "<td>");
     response->printf("<input type=\"number\" min=\"1\" id=\"sd\" name=\"sd\" value=\"%d\">", config->getSwitchDelay());
     response->print("</td>"
-        "</tr>"
-        "</table>");
+        "</tr>");
+    response->print("<tr>"
+        "<td>"
+          "<label for=\"hostname\">Hostname</label>"
+        "</td>"
+        "<td>");
+    response->printf("<input type=\"text\" id=\"hostname\" name=\"hostname\" value=\"%s\">", config->getHostname().c_str());
+    if (hostnameInvalid) {
+      response->print("<span class=\"e\" style=\"margin-left:0.6em;\">Ung&uuml;ltiger Hostname (1-32 Zeichen, A-Z, 0-9, '-'; kein '-' am Anfang/Ende)</span>");
+    }
+    response->print("</td>"
+        "</tr>");
+    response->print("<tr>"
+        "<td>"
+          "<label>WiFi mode</label>"
+        "</td>"
+        "<td>");
+    response->printf("<label><input type=\"radio\" name=\"wifimode\" value=\"dhcp\" %s> DHCP</label>",
+                     config->getWifiDhcp() ? "checked" : "");
+    response->printf("<label><input type=\"radio\" name=\"wifimode\" value=\"static\" %s> Static</label>",
+                     config->getWifiDhcp() ? "" : "checked");
+    response->print("</td>"
+        "</tr>");
+    response->printf("<tr class=\"wifi-static\"><td><label for=\"wifiip\">WiFi IP</label></td><td><input type=\"text\" id=\"wifiip\" name=\"wifiip\" value=\"%s\"></td></tr>",
+                     config->getWifiIp().c_str());
+    response->printf("<tr class=\"wifi-static\"><td><label for=\"wifigw\">WiFi Gateway</label></td><td><input type=\"text\" id=\"wifigw\" name=\"wifigw\" value=\"%s\"></td></tr>",
+                     config->getWifiGw().c_str());
+    response->printf("<tr class=\"wifi-static\"><td><label for=\"wifimask\">WiFi Netmask</label></td><td><input type=\"text\" id=\"wifimask\" name=\"wifimask\" value=\"%s\"></td></tr>",
+                     config->getWifiMask().c_str());
+    response->printf("<tr class=\"wifi-static\"><td><label for=\"wifidns1\">WiFi DNS 1</label></td><td><input type=\"text\" id=\"wifidns1\" name=\"wifidns1\" value=\"%s\"></td></tr>",
+                     config->getWifiDns1().c_str());
+    response->printf("<tr class=\"wifi-static\"><td><label for=\"wifidns2\">WiFi DNS 2</label></td><td><input type=\"text\" id=\"wifidns2\" name=\"wifidns2\" value=\"%s\"></td></tr>",
+                     config->getWifiDns2().c_str());
+#ifdef BOARD_DINGTIAN
+    response->print("<tr>"
+        "<td>"
+          "<label>Ethernet mode</label>"
+        "</td>"
+        "<td>");
+    response->printf("<label><input type=\"radio\" name=\"ethmode\" value=\"dhcp\" %s> DHCP</label>",
+                     config->getEthDhcp() ? "checked" : "");
+    response->printf("<label><input type=\"radio\" name=\"ethmode\" value=\"static\" %s> Static</label>",
+                     config->getEthDhcp() ? "" : "checked");
+    response->print("</td>"
+        "</tr>");
+    response->printf("<tr class=\"eth-static\"><td><label for=\"ethip\">Ethernet IP</label></td><td><input type=\"text\" id=\"ethip\" name=\"ethip\" value=\"%s\"></td></tr>",
+                     config->getEthIp().c_str());
+    response->printf("<tr class=\"eth-static\"><td><label for=\"ethgw\">Ethernet Gateway</label></td><td><input type=\"text\" id=\"ethgw\" name=\"ethgw\" value=\"%s\"></td></tr>",
+                     config->getEthGw().c_str());
+    response->printf("<tr class=\"eth-static\"><td><label for=\"ethmask\">Ethernet Netmask</label></td><td><input type=\"text\" id=\"ethmask\" name=\"ethmask\" value=\"%s\"></td></tr>",
+                     config->getEthMask().c_str());
+    response->printf("<tr class=\"eth-static\"><td><label for=\"ethdns1\">Ethernet DNS 1</label></td><td><input type=\"text\" id=\"ethdns1\" name=\"ethdns1\" value=\"%s\"></td></tr>",
+                     config->getEthDns1().c_str());
+    response->printf("<tr class=\"eth-static\"><td><label for=\"ethdns2\">Ethernet DNS 2</label></td><td><input type=\"text\" id=\"ethdns2\" name=\"ethdns2\" value=\"%s\"></td></tr>",
+                     config->getEthDns2().c_str());
+#endif
+    response->print("</table>");
+    response->print("<p></p>");
+    response->print("<label><input type=\"checkbox\" name=\"modbus\" value=\"1\" ");
+    response->print(config->getModbusEnabled() ? "checked" : "");
+    response->print("> Modbus/RS485 aktiv</label>");
+    response->print("<p style=\"font-size:0.9em;opacity:0.8;\">"
+                    "Hinweis: Statische IP-Einstellungen werden nach einem Reboot aktiv."
+                    "</p>");
+    response->print(
+      "<script>"
+      "function toggleRows(group, show){"
+        "var rows=document.getElementsByClassName(group+'-static');"
+        "for(var i=0;i<rows.length;i++){rows[i].style.display=show?'table-row':'none';}"
+      "}"
+      "function updateNetMode(){"
+        "var w=document.querySelector('input[name=\"wifimode\"]:checked');"
+        "var e=document.querySelector('input[name=\"ethmode\"]:checked');"
+        "toggleRows('wifi', w && w.value==='static');"
+        "toggleRows('eth', e && e.value==='static');"
+      "}"
+      "var radios=document.querySelectorAll('input[name=\"wifimode\"],input[name=\"ethmode\"]');"
+      "for(var i=0;i<radios.length;i++){radios[i].addEventListener('change', updateNetMode);}"
+      "updateNetMode();"
+      "</script>"
+    );
     response->print("<button class=\"r\">Save</button>"
       "</form>"
       "<p></p>");
@@ -129,6 +242,77 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
       phaseSwitch->setSwitchDelay(delay);
       dbgln("[webserver] saved switch delay");
     }
+    if (request->hasParam("hostname", true)){
+      String hostname = request->getParam("hostname", true)->value();
+      if (!Config::isHostnameValid(hostname)) {
+        request->redirect("/config?err=hostname");
+        return;
+      }
+      config->setHostname(hostname);
+      if (config->getHostname().length() > 0) {
+        WiFi.setHostname(config->getHostname().c_str());
+#ifdef BOARD_DINGTIAN
+        ethernetSetHostname(config->getHostname().c_str());
+#endif
+      }
+    }
+    if (request->hasParam("wifimode", true)){
+      String mode = request->getParam("wifimode", true)->value();
+      config->setWifiDhcp(mode == "dhcp");
+    }
+    if (request->hasParam("wifiip", true)){
+      config->setWifiIp(request->getParam("wifiip", true)->value());
+    }
+    if (request->hasParam("wifigw", true)){
+      config->setWifiGw(request->getParam("wifigw", true)->value());
+    }
+    if (request->hasParam("wifimask", true)){
+      config->setWifiMask(request->getParam("wifimask", true)->value());
+    }
+    if (request->hasParam("wifidns1", true)){
+      config->setWifiDns1(request->getParam("wifidns1", true)->value());
+    }
+    if (request->hasParam("wifidns2", true)){
+      config->setWifiDns2(request->getParam("wifidns2", true)->value());
+    }
+#ifdef BOARD_DINGTIAN
+    if (request->hasParam("ethmode", true)){
+      String mode = request->getParam("ethmode", true)->value();
+      config->setEthDhcp(mode == "dhcp");
+    }
+    if (request->hasParam("ethip", true)){
+      config->setEthIp(request->getParam("ethip", true)->value());
+    }
+    if (request->hasParam("ethgw", true)){
+      config->setEthGw(request->getParam("ethgw", true)->value());
+    }
+    if (request->hasParam("ethmask", true)){
+      config->setEthMask(request->getParam("ethmask", true)->value());
+    }
+    if (request->hasParam("ethdns1", true)){
+      config->setEthDns1(request->getParam("ethdns1", true)->value());
+    }
+    if (request->hasParam("ethdns2", true)){
+      config->setEthDns2(request->getParam("ethdns2", true)->value());
+    }
+    if (config->getEthDhcp()) {
+      ethernetConfigureDhcp();
+    } else {
+      IPAddress ip;
+      IPAddress gw;
+      IPAddress mask;
+      IPAddress dns1;
+      IPAddress dns2;
+      ip.fromString(config->getEthIp());
+      gw.fromString(config->getEthGw());
+      mask.fromString(config->getEthMask());
+      dns1.fromString(config->getEthDns1());
+      dns2.fromString(config->getEthDns2());
+      ethernetConfigureStatic(ip, gw, mask, dns1, dns2);
+    }
+#endif
+    bool modbusEnabled = request->hasParam("modbus", true);
+    config->setModbusEnabled(modbusEnabled);
     request->redirect("/");
   });
   server->on("/1p", HTTP_POST, [phaseSwitch](AsyncWebServerRequest *request){
@@ -272,9 +456,10 @@ void setupPages(AsyncWebServer *server, PhaseSwitch *phaseSwitch, Config *config
     sendResponseTrailer(response);
     request->send(response);
   });
-  server->on("/wifi", HTTP_POST, [wm](AsyncWebServerRequest *request){
+  server->on("/wifi", HTTP_POST, [wm, config](AsyncWebServerRequest *request){
     dbgln("[webserver] POST /wifi");
     request->redirect("/");
+    config->setWifiCredsSet(false);
     wm->erase();
     dbgln("[webserver] erased wifi config");
     dbgln("[webserver] rebooting...");

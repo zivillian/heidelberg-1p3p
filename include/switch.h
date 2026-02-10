@@ -49,6 +49,7 @@
             uint8_t _serverId;
             MBSworker _bridgeWorker;
             ModbusMessage onWriteHolding(ModbusMessage msg);
+            ModbusMessage bridgeCall(ModbusMessage msg);
             ModbusMessage cacheWriteHolding(ModbusMessage msg);
             ModbusMessage onWriteMultiple(ModbusMessage msg);
             ModbusMessage cacheWriteMultiple(ModbusMessage msg);

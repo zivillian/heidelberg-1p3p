@@ -21,6 +21,41 @@ Ich habe meinen Prototyp gebaut und mit meiner Wallbox getestet - das sieht sehr
 1. evcc Patch upstreamen
 1. *Party*
 
+## Ethernet (Dingtian DT-R002)
+
+Der Dingtian DT-R002 (DEV) hat einen JL1101 PHY (RTL8201F kompatibel) und einen RMII Anschluss. In diesem Projekt ist Ethernet für das Board integriert. Pins:
+
+- RMII_CLK: `GPIO17`
+- MDC: `GPIO23`
+- MDIO: `GPIO18`
+- PHY RST/PWR: `GPIO0`
+
+### Aktivierung
+
+- Build-Umgebung: `env:dingtian`
+- Framework: Arduino als ESP-IDF Component (siehe `platformio.ini`)
+
+### Statusanzeige
+
+Unter **Status** werden die Ethernet MAC und IP angezeigt (zusätzlich zu WiFi). Wenn WLAN oder LAN nicht aktiv sind, werden deren IP‑Felder leer gelassen. Zusätzlich wird angezeigt, ob WLAN‑Credentials gesetzt sind.
+
+### DHCP vs. statische IP
+
+Unter **Config** kann zwischen DHCP und statischer IP gewechselt werden – sowohl für Ethernet als auch für WiFi. Für statische IP bitte `IP`, `Gateway`, `Netmask` und `DNS` eintragen. (WiFi-Änderungen werden nach einem Reboot zuverlässig aktiv.)
+
+### Hostname
+
+Unter **Config** kann ein Hostname gesetzt werden. Dieser wird sowohl für WLAN als auch für Ethernet verwendet.
+
+### WLAN bei aktivem LAN
+
+Wenn Ethernet Link + IP hat, wird WLAN automatisch deaktiviert. Fällt Ethernet weg, wird WLAN wieder aktiviert.
+Wenn kein WLAN eingerichtet ist und LAN wegfällt, startet der ESP nach einem Reboot das WLAN‑Konfigurationsportal (Access Point), damit die Ersteinrichtung möglich ist.
+
+### Modbus aktivieren/deaktivieren
+
+Unter **Config** kann Modbus komplett deaktiviert werden. In diesem Fall wird im Status keine Register‑Aktualisierung angeboten.
+
 ## Darf ich das?
 
 **Nope!**
